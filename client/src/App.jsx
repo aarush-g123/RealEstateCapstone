@@ -1,11 +1,24 @@
 import React from 'react';
+import { useAuth } from './context/AuthContext.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import Dashboard from './pages/Dashboard.jsx';
 
 export default function App() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-red-500">
-      <h1 className="text-5xl font-bold text-white">
-        Test page – React & Tailwind are working 🎉
-      </h1>
-    </div>
-  );
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <p className="text-sm text-slate-600">Loading...</p>
+      </div>
+    );
+  }
+
+  // Not logged in → show login screen
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  // Logged in → show dashboard
+  return <Dashboard />;
 }
