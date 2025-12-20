@@ -118,3 +118,9 @@ RealEstateCapstone/
       index.js             # Express app entry
     package.json
   README.md
+
+
+OWNER GOOGLE SIGN-IN (prototype)
+- Set VITE_GOOGLE_CLIENT_ID in client/.env
+- (Optional) Set VITE_OWNER_EMAIL to restrict access to a single Google account.
+- Visit /owner-login to sign in, then /dashboard.

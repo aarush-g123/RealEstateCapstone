@@ -1,43 +1,59 @@
-import React from 'react';
-import { useAuth } from '../context/AuthContext.jsx';
-import AddContactForm from '../components/AddContactForm.jsx';
-import ContactTable from '../components/ContactTable.jsx';
+import React, { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-export default function Dashboard() {
-  const { user, logout } = useAuth();
+export default function DashboardPage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const authed = localStorage.getItem("ownerAuthed") === "true";
+    if (!authed) navigate("/owner-login");
+  }, [navigate]);
+
+  const email = localStorage.getItem("ownerEmail");
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <header className="flex justify-between items-center px-8 py-4 bg-white shadow">
-        <div>
-          <h1 className="text-xl font-bold">Contacts Dashboard</h1>
-          {user && (
-            <p className="text-sm text-slate-600">
-              Signed in as <span className="font-semibold">{user.email}</span> ({user.role})
-            </p>
-          )}
+    <div className="bg-white border border-slate-200 rounded-3xl p-8">
+      <h1 className="text-3xl font-bold">Owner Dashboard (prototype)</h1>
+      <p className="mt-2 text-slate-600">
+        This page is restricted to the site owner. {email ? <>Signed in as <span className="font-semibold">{email}</span>.</> : null}
+      </p>
+
+      <div className="mt-6 grid sm:grid-cols-2 gap-4">
+        <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50">
+          <div className="font-semibold">Listings</div>
+          <div className="text-sm text-slate-600 mt-1">Manage property cards (prototype UI only).</div>
+          <Link to="/properties" className="mt-3 inline-block text-sm font-semibold hover:underline">
+            View properties →
+          </Link>
         </div>
+        <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50">
+          <div className="font-semibold">Messages</div>
+          <div className="text-sm text-slate-600 mt-1">View inquiries and tour requests (placeholder).</div>
+          <Link to="/contact" className="mt-3 inline-block text-sm font-semibold hover:underline">
+            Contact page →
+          </Link>
+        </div>
+      </div>
+
+      <div className="mt-6 flex flex-wrap gap-3">
         <button
-          onClick={logout}
-          className="px-4 py-2 rounded-lg bg-slate-800 text-white text-sm font-medium"
+          onClick={() => {
+            localStorage.removeItem("ownerAuthed");
+            localStorage.removeItem("ownerEmail");
+            navigate("/");
+          }}
+          className="px-5 py-3 rounded-xl border border-slate-200 bg-white font-semibold hover:bg-slate-50"
         >
-          Logout
+          Sign out
         </button>
-      </header>
 
-      <main className="max-w-4xl mx-auto py-8 px-4 space-y-8">
-        {user?.role === 'admin' && (
-          <section>
-            <h2 className="text-lg font-semibold mb-2">Add Contact (admin only)</h2>
-            <AddContactForm />
-          </section>
-        )}
-
-        <section>
-          <h2 className="text-lg font-semibold mb-2">All Contacts</h2>
-          <ContactTable />
-        </section>
-      </main>
+        <Link
+          to="/"
+          className="px-5 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800"
+        >
+          Back to home
+        </Link>
+      </div>
     </div>
   );
 }
