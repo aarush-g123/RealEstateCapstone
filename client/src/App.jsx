@@ -32,10 +32,8 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/properties" element={<PropertiesPage />} />
           <Route path="/properties/:id" element={<PropertyDetailPage />} />
-          <Route path="/agents" element={<AgentsPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/login" element={<LoginPage />} />
           <Route path="/owner-login" element={<OwnerLoginPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/home" element={<Navigate to="/" replace />} />

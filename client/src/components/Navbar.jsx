@@ -16,8 +16,7 @@ export default function Navbar() {
             HH
           </div>
           <div className="leading-tight">
-            <div className="font-semibold text-slate-900">Horizon Homes</div>
-            <div className="text-xs text-slate-500">Real estate prototype</div>
+            <h1 className="text-xl font-semibold">Sweta Patel Realtor</h1>
           </div>
         </Link>
 
@@ -27,9 +26,6 @@ export default function Navbar() {
           </NavLink>
           <NavLink to="/properties" className={navLinkClass}>
             Properties
-          </NavLink>
-          <NavLink to="/agents" className={navLinkClass}>
-            Agents
           </NavLink>
           <NavLink to="/about" className={navLinkClass}>
             About
@@ -58,21 +54,6 @@ export default function Navbar() {
       Owner Sign In
     </Link>
   )}
-          {pathname !== "/login" ? (
-            <Link
-              to="/login"
-              className="px-3 py-2 rounded-md text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800"
-            >
-              Sign in
-            </Link>
-          ) : (
-            <Link
-              to="/"
-              className="px-3 py-2 rounded-md text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800"
-            >
-              Back
-            </Link>
-          )}
         </div>
       </div>
 
@@ -84,9 +65,6 @@ export default function Navbar() {
           </NavLink>
           <NavLink to="/properties" className={navLinkClass}>
             Properties
-          </NavLink>
-          <NavLink to="/agents" className={navLinkClass}>
-            Agents
           </NavLink>
           <NavLink to="/about" className={navLinkClass}>
             About
