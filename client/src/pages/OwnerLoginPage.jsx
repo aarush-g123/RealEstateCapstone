@@ -102,7 +102,7 @@ export default function OwnerLoginPage() {
     <div className="bg-white border border-slate-200 rounded-3xl p-8">
       <h1 className="text-3xl font-bold">Owner Sign In</h1>
       <p className="mt-2 text-slate-600">
-        Prototype owner-only access. Sign in with Google to view the dashboard.
+        Sign in with Google to view the dashboard.
       </p>
 
       <div className="mt-6 flex flex-col gap-3 items-start">
@@ -123,10 +123,6 @@ export default function OwnerLoginPage() {
         )}
 
         <div className="text-xs text-slate-500 max-w-prose">
-          <p>
-            Note: This demo decodes the Google credential on the client. For a production app, the token
-            should be verified on the server.
-          </p>
           {!ownerEmail && (
             <p className="mt-2">
               Tip: set <span className="font-mono">VITE_OWNER_EMAIL</span> in <span className="font-mono">client/.env</span>{" "}

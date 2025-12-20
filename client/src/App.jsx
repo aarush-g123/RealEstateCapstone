@@ -5,10 +5,8 @@ import MainLayout from "./layouts/MainLayout.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import PropertiesPage from "./pages/PropertiesPage.jsx";
 import PropertyDetailPage from "./pages/PropertyDetailPage.jsx";
-import AgentsPage from "./pages/AgentsPage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
 import ContactPage from "./pages/ContactPage.jsx";
-import LoginPage from "./pages/LoginPage.jsx";
 import OwnerLoginPage from "./pages/OwnerLoginPage.jsx";
 import DashboardPage from "./pages/Dashboard.jsx";
 

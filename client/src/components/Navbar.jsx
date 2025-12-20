@@ -13,7 +13,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <div className="h-9 w-9 rounded-xl bg-slate-900 text-white grid place-items-center font-bold">
-            HH
+            SP
           </div>
           <div className="leading-tight">
             <h1 className="text-xl font-semibold">Sweta Patel Realtor</h1>

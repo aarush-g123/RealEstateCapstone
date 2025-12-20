@@ -11,9 +11,6 @@ export default function ContactPage() {
     <div className="grid gap-6 lg:grid-cols-3 items-start">
       <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-8">
         <h1 className="text-3xl font-bold">Contact</h1>
-        <p className="mt-2 text-slate-600">
-          This form is for UI demonstration. Submitting just shows a confirmation.
-        </p>
 
         <div className="mt-6 grid gap-4">
           <div>
@@ -68,7 +65,7 @@ export default function ContactPage() {
           </div>
           <div className="flex justify-between gap-3">
             <span className="text-slate-500">Email</span>
-            <span className="font-semibold">hello@horizonhomes.com</span>
+            <span className="font-semibold">hello@swetapatel.com</span>
           </div>
         </div>
 
