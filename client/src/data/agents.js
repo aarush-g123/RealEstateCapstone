@@ -1,7 +1,7 @@
 export const agents = [
   {
     id: "a-1",
-    name: "Maya Patel",
+    name: "Sweta Patel",
     title: "Senior Agent",
     phone: "(512) 555-0137",
     email: "maya.patel@horizonhomes.com",
