@@ -1,77 +1,59 @@
 import React from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 
-const navLinkClass = ({ isActive }) =>
-  `px-3 py-2 rounded-md text-sm font-medium transition ${
-    isActive ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100"
-  }`;
-
 export default function Navbar() {
   const { pathname } = useLocation();
+  const isHome = pathname === "/";
+
+  const baseText = isHome ? "text-white" : "text-slate-900";
+  const hoverText = isHome ? "hover:text-white" : "hover:text-slate-900";
+
   return (
-    <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-xl bg-slate-900 text-white grid place-items-center font-bold">
+    <header
+      className={`w-full z-50 ${
+        isHome
+          ? "absolute top-0 left-0 bg-transparent"
+          : "sticky top-0 bg-white border-b border-slate-200"
+      }`}
+    >
+      <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-3">
+          <div className="bg-slate-900 text-white w-10 h-10 rounded-lg flex items-center justify-center font-semibold">
             SP
           </div>
-          <div className="leading-tight">
-            <h1 className="text-xl font-semibold">Sweta Patel Realtor</h1>
-          </div>
+          <span className={`font-semibold text-lg ${baseText}`}>
+            Sweta Patel Realtor
+          </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
-          <NavLink to="/" className={navLinkClass} end>
-            Home
-          </NavLink>
-          <NavLink to="/properties" className={navLinkClass}>
+        {/* Right side */}
+        <div className="flex items-center gap-6">
+          <NavLink
+            to="/properties"
+            className={`${baseText} ${hoverText} text-sm tracking-widest uppercase`}
+          >
             Properties
           </NavLink>
-          <NavLink to="/about" className={navLinkClass}>
-            About
-          </NavLink>
-          <NavLink to="/contact" className={navLinkClass}>
-            Contact
-          </NavLink>
-        </nav>
 
+          <NavLink
+            to="/contact"
+            className={`${baseText} ${hoverText} text-sm tracking-widest uppercase`}
+          >
+            Let’s Connect
+          </NavLink>
 
-<div className="flex items-center gap-2">
-  {localStorage.getItem("ownerAuthed") === "true" ? (
-    <Link
-      to="/dashboard"
-      className="px-3 py-2 rounded-md text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50"
-      title="Owner dashboard"
-    >
-      Owner
-    </Link>
-  ) : (
-    <Link
-      to="/owner-login"
-      className="px-3 py-2 rounded-md text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50"
-      title="Owner sign in"
-    >
-      Owner Sign In
-    </Link>
-  )}
-        </div>
-      </div>
-
-      {/* Mobile nav */}
-      <div className="md:hidden border-t border-slate-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex gap-2 overflow-x-auto">
-          <NavLink to="/" className={navLinkClass} end>
-            Home
-          </NavLink>
-          <NavLink to="/properties" className={navLinkClass}>
-            Properties
-          </NavLink>
-          <NavLink to="/about" className={navLinkClass}>
-            About
-          </NavLink>
-          <NavLink to="/contact" className={navLinkClass}>
-            Contact
-          </NavLink>
+          {/* Owner Button */}
+          <Link
+            to="/owner-login"
+            className={`px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition ${
+              isHome
+                ? "border border-white text-white hover:bg-white hover:text-black"
+                : "border border-slate-300 text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            Owner
+          </Link>
         </div>
       </div>
     </header>

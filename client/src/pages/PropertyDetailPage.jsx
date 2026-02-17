@@ -16,10 +16,10 @@ export default function PropertyDetailPage() {
 
   if (!property) {
     return (
-      <div className="bg-white border border-slate-200 rounded-3xl p-8">
-        <p className="font-semibold">Listing not found.</p>
+      <div className="panel p-10">
+        <p className="font-semibold text-white">Listing not found.</p>
         <div className="mt-3">
-          <Link className="text-sm font-semibold hover:underline" to="/properties">
+          <Link className="text-sm font-semibold text-white/80 hover:text-white hover:underline" to="/properties">
             ← Back to properties
           </Link>
         </div>
@@ -31,32 +31,37 @@ export default function PropertyDetailPage() {
   const mainImg = images[Math.min(imgIndex, images.length - 1)];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-10">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Link className="text-sm font-semibold hover:underline" to="/properties">
+          <Link className="text-sm font-semibold text-white/80 hover:text-white hover:underline" to="/properties">
             ← Back to properties
           </Link>
-          <h1 className="mt-2 text-3xl font-bold">{property.title}</h1>
-          <p className="text-slate-600">{property.city} • {property.status} • {property.type}</p>
+
+          <h1 className="mt-4 text-4xl font-semibold tracking-wide text-white">{property.title}</h1>
+          <p className="mt-2 text-white/70">
+            {property.city} • {property.status} • {property.type}
+          </p>
         </div>
+
         <div className="text-right">
-          <div className="text-2xl font-bold">{formatPrice(property.price)}</div>
-          <div className="text-xs text-slate-500">dummy price</div>
+          <div className="text-3xl font-semibold text-white">{formatPrice(property.price)}</div>
+          <div className="text-xs text-white/50 tracking-[0.25em] uppercase mt-2">price</div>
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden">
-            <img src={mainImg} alt={property.title} className="h-[340px] w-full object-cover" />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="panel overflow-hidden">
+            <img src={mainImg} alt={property.title} className="h-[380px] w-full object-cover" />
+
             <div className="p-4 flex gap-3 overflow-x-auto">
               {images.map((src, idx) => (
                 <button
                   key={src}
                   onClick={() => setImgIndex(idx)}
                   className={`h-16 w-24 rounded-xl overflow-hidden border transition ${
-                    idx === imgIndex ? "border-slate-900" : "border-slate-200 hover:border-slate-400"
+                    idx === imgIndex ? "border-white/60" : "border-white/15 hover:border-white/30"
                   }`}
                   aria-label={`View photo ${idx + 1}`}
                 >
@@ -66,95 +71,80 @@ export default function PropertyDetailPage() {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-3xl p-6">
-            <h2 className="text-xl font-bold">Overview</h2>
-            <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-700">
-              <span className="px-3 py-1 rounded-full bg-slate-50 border border-slate-200">
+          <div className="panel p-7">
+            <div className="panelTitle">Overview</div>
+
+            <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/80">
+              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
                 {property.beds} beds
               </span>
-              <span className="px-3 py-1 rounded-full bg-slate-50 border border-slate-200">
+              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
                 {property.baths} baths
               </span>
-              <span className="px-3 py-1 rounded-full bg-slate-50 border border-slate-200">
+              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
                 {property.sqft.toLocaleString()} sqft
               </span>
             </div>
-            <p className="mt-4 text-slate-600 leading-relaxed">{property.description}</p>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <button
-                onClick={() => alert("Tour requested (prototype)")}
-                className="px-5 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800"
-              >
+            <p className="mt-5 text-white/70 leading-relaxed">{property.description}</p>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              <button onClick={() => alert("Tour requested (prototype)")} className="btnPrimary">
                 Request a tour
               </button>
-              <button
-                onClick={() => alert("Application started (prototype)")}
-                className="px-5 py-3 rounded-xl border border-slate-200 bg-white font-semibold hover:bg-slate-50"
-              >
+              <button onClick={() => alert("Application started (prototype)")} className="btnGhost">
                 Start application
               </button>
             </div>
           </div>
         </div>
 
-        <aside className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6">
-            <h3 className="text-lg font-bold">Quick actions</h3>
-            <div className="mt-4 grid gap-3">
-              <button
-                onClick={() => alert("Saved (prototype)")}
-                className="px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 font-semibold"
-              >
+        <aside className="space-y-6">
+          <div className="panel p-7">
+            <div className="panelTitle">Quick actions</div>
+            <div className="mt-5 grid gap-3">
+              <button onClick={() => alert("Saved (prototype)")} className="btnGhost">
                 Save to favorites
               </button>
-              <button
-                onClick={() => navigate("/contact")}
-                className="px-4 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-semibold"
-              >
-                Contact us
+              <button onClick={() => navigate("/contact")} className="btnPrimary">
+                Contact
               </button>
-              <button
-                onClick={() => navigate("/login")}
-                className="px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 font-semibold"
-              >
+              <button onClick={() => navigate("/login")} className="btnGhost">
                 Sign in for alerts
               </button>
             </div>
           </div>
 
           {agent && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-6">
-              <h3 className="text-lg font-bold">Agent</h3>
-              <div className="mt-4 flex items-center gap-3">
+            <div className="panel p-7">
+              <div className="panelTitle">Agent</div>
+
+              <div className="mt-5 flex items-center gap-3">
                 <img src={agent.photo} alt={agent.name} className="h-12 w-12 rounded-2xl object-cover" />
                 <div>
-                  <div className="font-semibold">{agent.name}</div>
-                  <div className="text-sm text-slate-600">{agent.title}</div>
+                  <div className="font-semibold text-white">{agent.name}</div>
+                  <div className="text-sm text-white/70">{agent.title}</div>
                 </div>
               </div>
-              <p className="mt-3 text-sm text-slate-600">{agent.bio}</p>
-              <div className="mt-4 grid gap-2 text-sm">
+
+              <p className="mt-4 text-sm text-white/70">{agent.bio}</p>
+
+              <div className="mt-5 grid gap-2 text-sm">
                 <div className="flex justify-between gap-3">
-                  <span className="text-slate-500">Phone</span>
-                  <span className="font-semibold">{agent.phone}</span>
+                  <span className="text-white/50">Phone</span>
+                  <span className="font-semibold text-white">{agent.phone}</span>
                 </div>
                 <div className="flex justify-between gap-3">
-                  <span className="text-slate-500">Email</span>
-                  <span className="font-semibold">{agent.email}</span>
+                  <span className="text-white/50">Email</span>
+                  <span className="font-semibold text-white">{agent.email}</span>
                 </div>
               </div>
-              <div className="mt-5 flex gap-2">
-                <button
-                  onClick={() => alert("Message sent (prototype)")}
-                  className="flex-1 px-4 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-semibold"
-                >
+
+              <div className="mt-6 flex gap-2">
+                <button onClick={() => alert("Message sent (prototype)")} className="flex-1 btnPrimary">
                   Message
                 </button>
-                <Link
-                  to="/agents"
-                  className="px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 font-semibold"
-                >
+                <Link to="/agents" className="btnGhost">
                   View agents
                 </Link>
               </div>
