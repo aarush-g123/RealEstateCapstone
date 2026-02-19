@@ -65,7 +65,7 @@ export default function ContactPage() {
           </div>
           <div className="flex justify-between gap-3">
             <span className="text-slate-500">Email</span>
-            <span className="font-semibold">hello@swetapatel.com</span>
+            <span className="font-semibold">swetapatel@corcoraninfinities.com</span>
           </div>
         </div>
 

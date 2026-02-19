@@ -10,36 +10,90 @@ body {
   margin: 0;
 }
 
-@layer components {
   .panel {
-    @apply rounded-3xl border border-white/10 bg-white/5 backdrop-blur shadow-sm;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
   }
 
   .panelTitle {
-    @apply text-xs tracking-[0.35em] uppercase text-white/60;
+    font-size: 12px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.60);
   }
 
   .heading {
-    @apply text-4xl font-semibold tracking-wide;
+    font-size: 36px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
   }
 
   .subtleText {
-    @apply text-white/70;
+    color: rgba(255,255,255,0.70);
   }
 
   .inputDark {
-    @apply w-full px-4 py-3 rounded-xl border border-white/15 bg-white/10 text-white placeholder:text-white/40 outline-none;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.40);
+    color: white;
+    outline: none;
+  }
+  .inputDark::placeholder {
+    color: rgba(255,255,255,0.40);
   }
 
   .selectDark {
-    @apply w-full px-4 py-3 rounded-xl border border-white/15 bg-white/10 text-white outline-none;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+    padding: 0 40px 0 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.40);
+    color: white;
+    outline: none;
   }
 
   .btnGhost {
-    @apply px-5 py-3 rounded-xl border border-white/20 text-white font-semibold tracking-widest uppercase hover:border-white/50 transition;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.20);
+    color: white;
+    padding: 12px 20px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: 150ms;
+    background: transparent;
+    cursor: pointer;
+  }
+  .btnGhost:hover {
+    border-color: rgba(255,255,255,0.50);
+    background: rgba(255,255,255,0.05);
   }
 
   .btnPrimary {
-    @apply px-5 py-3 rounded-xl bg-white text-black font-semibold tracking-widest uppercase hover:bg-slate-100 transition;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: white;
+    color: black;
+    padding: 12px 20px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: 150ms;
+    cursor: pointer;
   }
-}
+  .btnPrimary:hover {
+    background: #f1f5f9;
+  }
+

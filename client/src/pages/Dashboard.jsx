@@ -12,45 +12,63 @@ export default function DashboardPage() {
   const email = localStorage.getItem("ownerEmail");
 
   return (
-    <div className="bg-white border border-slate-200 rounded-3xl p-8">
-      <h1 className="text-3xl font-bold">Owner Dashboard</h1>
-      <p className="mt-2 text-slate-600">
-        This page is restricted to the site owner. {email ? <>Signed in as <span className="font-semibold">{email}</span>.</> : null}
+    <div className="panel p-10">
+      <h1 className="text-4xl font-semibold tracking-wide text-white">Owner Dashboard</h1>
+
+      <p className="mt-3 text-white/70">
+        This page is restricted to the site owner.{" "}
+        {email ? (
+          <>
+            Signed in as <span className="font-semibold text-white">{email}</span>.
+          </>
+        ) : null}
       </p>
 
-      <div className="mt-6 grid sm:grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50">
-          <div className="font-semibold">Listings</div>
-          <div className="text-sm text-slate-600 mt-1">Manage property cards.</div>
-          <Link to="/properties" className="mt-3 inline-block text-sm font-semibold hover:underline">
+      <div className="mt-8 grid gap-6 sm:grid-cols-2">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
+          <div className="text-sm tracking-[0.35em] uppercase text-white/60">Listings</div>
+          <div className="mt-3 text-white/80 font-semibold">Manage property cards</div>
+          <div className="text-sm text-white/70 mt-2">
+            Update active listings shown on the site.
+          </div>
+
+          <Link
+            to="/properties"
+            className="mt-5 inline-block text-sm font-semibold text-white/80 hover:text-white hover:underline transition"
+          >
             View properties →
           </Link>
         </div>
-        <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50">
-          <div className="font-semibold">Messages</div>
-          <div className="text-sm text-slate-600 mt-1">View inquiries and tour requests.</div>
-          <Link to="/contact" className="mt-3 inline-block text-sm font-semibold hover:underline">
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
+          <div className="text-sm tracking-[0.35em] uppercase text-white/60">Messages</div>
+          <div className="mt-3 text-white/80 font-semibold">Inquiries and tour requests</div>
+          <div className="text-sm text-white/70 mt-2">
+            View contact submissions from visitors.
+          </div>
+
+          <Link
+            to="/contact"
+            className="mt-5 inline-block text-sm font-semibold text-white/80 hover:text-white hover:underline transition"
+          >
             Contact page →
           </Link>
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-3">
+      <div className="mt-8 flex flex-wrap gap-3">
         <button
           onClick={() => {
             localStorage.removeItem("ownerAuthed");
             localStorage.removeItem("ownerEmail");
             navigate("/");
           }}
-          className="px-5 py-3 rounded-xl border border-slate-200 bg-white font-semibold hover:bg-slate-50"
+          className="btnGhost"
         >
           Sign out
         </button>
 
-        <Link
-          to="/"
-          className="px-5 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800"
-        >
+        <Link to="/" className="btnPrimary">
           Back to home
         </Link>
       </div>
