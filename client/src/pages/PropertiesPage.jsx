@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import PropertyCard from "../components/PropertyCard.jsx";
-import { properties as allProperties } from "../data/properties.js";
+import { useProperties } from "../utils/propertiesStore.js";
 
 export default function PropertiesPage() {
+  const [allProperties] = useProperties();
   const [params] = useSearchParams();
   const [status, setStatus] = useState(params.get("status") || "Any");
   const [type, setType] = useState(params.get("type") || "Any");
@@ -22,7 +23,7 @@ export default function PropertiesPage() {
         p.status.toLowerCase().includes(query)
       );
     });
-  }, [status, type, q]);
+  }, [allProperties, status, type, q]);
 
   return (
     <div className="space-y-10">

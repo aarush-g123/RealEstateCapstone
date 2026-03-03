@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { properties, formatPrice } from "../data/properties.js";
+import { formatPrice } from "../data/properties.js";
 import { agents } from "../data/agents.js";
+import { useProperties } from "../utils/propertiesStore.js";
 
 export default function PropertyDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const property = useMemo(() => properties.find((p) => p.id === id), [id]);
+  const [properties] = useProperties();
+  const property = useMemo(() => properties.find((p) => p.id === id), [properties, id]);
   const [imgIndex, setImgIndex] = useState(0);
 
   const agent = useMemo(() => {

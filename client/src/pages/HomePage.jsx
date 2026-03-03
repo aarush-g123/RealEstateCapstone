@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import PropertyCard from "../components/PropertyCard.jsx";
-import { properties } from "../data/properties.js";
+import { useProperties } from "../utils/propertiesStore.js";
 
 function useCountUp(start, to, duration = 1200) {
   const [val, setVal] = useState(0);
@@ -125,7 +125,8 @@ function ReviewsDark() {
 }
 
 export default function HomePage() {
-  const featured = useMemo(() => properties.filter((p) => p.featured), []);
+  const [properties] = useProperties();
+  const featured = useMemo(() => properties.filter((p) => p.featured), [properties]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("Any");
   const [type, setType] = useState("Any");
