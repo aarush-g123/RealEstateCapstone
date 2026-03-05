@@ -26,11 +26,26 @@ router.post('/login', async (req, res) => {
 
     let user = await User.findOne({ where: { googleId } });
     if (!user) {
-      // default: first user = admin, others viewer (for demo)
-      const totalUsers = await User.count();
-      const role = totalUsers === 0 ? 'admin' : 'viewer';
+      // Security: only grant admin if email matches OWNER_EMAIL (if set).
+      // Fallback demo behavior: first user becomes admin.
+      const ownerEmail = (process.env.OWNER_EMAIL || '').trim().toLowerCase();
+      let role = 'viewer';
+
+      if (ownerEmail && String(email).toLowerCase() === ownerEmail) {
+        role = 'admin';
+      } else {
+        const totalUsers = await User.count();
+        role = totalUsers === 0 ? 'admin' : 'viewer';
+      }
 
       user = await User.create({ googleId, email, name, role });
+    } else {
+      // If OWNER_EMAIL is set, ensure that account is admin.
+      const ownerEmail = (process.env.OWNER_EMAIL || '').trim().toLowerCase();
+      if (ownerEmail && String(user.email).toLowerCase() === ownerEmail && user.role !== 'admin') {
+        user.role = 'admin';
+        await user.save();
+      }
     }
 
     // store in session

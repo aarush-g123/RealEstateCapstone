@@ -11,6 +11,7 @@ const { sequelize } = require('./models');
 
 const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -88,6 +89,7 @@ app.get('/version', (req, res) => {
 // routes
 app.use('/api/auth', authRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // start server after DB sync
 (async () => {

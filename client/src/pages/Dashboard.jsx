@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { addProperty, removeProperty, useProperties } from "../utils/propertiesStore.js";
+import { clearPropertyMetrics, resetMetrics, useMetrics } from "../utils/metricsStore.js";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [properties, setProperties] = useProperties();
+  const [metrics, refreshMetrics] = useMetrics();
 
   const [form, setForm] = useState({
     title: "",
@@ -37,6 +39,25 @@ export default function DashboardPage() {
   }, [navigate]);
 
   const email = localStorage.getItem("ownerEmail");
+
+  const propertyViews = useMemo(() => {
+    const map = (metrics && metrics.properties) || {};
+    return properties
+      .map((p) => ({
+        id: p.id,
+        title: p.title,
+        city: p.city,
+        views: Number(map[p.id] || 0),
+      }))
+      .sort((a, b) => b.views - a.views);
+  }, [metrics, properties]);
+
+  const pageViews = useMemo(() => {
+    const pages = (metrics && metrics.pages) || {};
+    return Object.entries(pages)
+      .map(([path, views]) => ({ path, views: Number(views || 0) }))
+      .sort((a, b) => b.views - a.views);
+  }, [metrics]);
 
   return (
     <div className="panel p-10">
@@ -254,10 +275,14 @@ export default function DashboardPage() {
 
                 <button
                   className="btnGhost whitespace-nowrap"
-                  onClick={() => {
+                  onClick={async () => {
                     const ok = window.confirm(`Remove “${p.title}”?`);
                     if (!ok) return;
                     const next = removeProperty(p.id);
+                    try {
+                      await clearPropertyMetrics(p.id);
+                    } catch {}
+                    await refreshMetrics();
                     setProperties(next);
                   }}
                 >
@@ -269,6 +294,72 @@ export default function DashboardPage() {
             {properties.length === 0 && (
               <div className="text-sm text-white/70">No properties yet.</div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* METRICS */}
+      <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-7">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="text-sm tracking-[0.35em] uppercase text-white/60">Metrics</div>
+            <div className="mt-3 text-white/80 font-semibold">Views</div>
+            <p className="mt-2 text-sm text-white/70">
+              Server-backed analytics (last {metrics?.days || 30} days).
+            </p>
+          </div>
+
+          <button
+            className="btnGhost"
+            onClick={async () => {
+              const ok = window.confirm("Reset all metrics? This can’t be undone.");
+              if (!ok) return;
+              try {
+                await resetMetrics();
+              } catch {}
+              await refreshMetrics();
+            }}
+          >
+            Reset metrics
+          </button>
+        </div>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
+            <div className="text-xs tracking-[0.25em] uppercase text-white/50">Total site views</div>
+            <div className="mt-2 text-3xl font-semibold text-white">
+              {Number(metrics?.totalSiteViews || 0).toLocaleString()}
+            </div>
+            <div className="mt-2 text-xs text-white/50">Last updated: {metrics?.updatedAt || ""}</div>
+          </div>
+
+          <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-black/20 p-5">
+            <div className="text-xs tracking-[0.25em] uppercase text-white/50">Views by page</div>
+            <div className="mt-4 space-y-2 max-h-[220px] overflow-auto pr-1">
+              {pageViews.map((r) => (
+                <div key={r.path} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-white/80 truncate">{r.path}</span>
+                  <span className="font-semibold text-white">{r.views.toLocaleString()}</span>
+                </div>
+              ))}
+              {pageViews.length === 0 && <div className="text-sm text-white/70">No views yet.</div>}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-5">
+          <div className="text-xs tracking-[0.25em] uppercase text-white/50">Views by property</div>
+          <div className="mt-4 space-y-2 max-h-[300px] overflow-auto pr-1">
+            {propertyViews.map((r) => (
+              <div key={r.id} className="flex items-center justify-between gap-3 text-sm">
+                <div className="min-w-0">
+                  <div className="text-white/80 truncate">{r.title}</div>
+                  <div className="text-xs text-white/50 truncate">{r.city}</div>
+                </div>
+                <span className="font-semibold text-white">{r.views.toLocaleString()}</span>
+              </div>
+            ))}
+            {propertyViews.length === 0 && <div className="text-sm text-white/70">No properties yet.</div>}
           </div>
         </div>
       </div>

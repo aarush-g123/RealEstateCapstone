@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { formatPrice } from "../data/properties.js";
 import { agents } from "../data/agents.js";
 import { useProperties } from "../utils/propertiesStore.js";
+import { trackPropertyView } from "../utils/metricsStore.js";
 
 export default function PropertyDetailPage() {
   const { id } = useParams();
@@ -10,6 +11,12 @@ export default function PropertyDetailPage() {
   const [properties] = useProperties();
   const property = useMemo(() => properties.find((p) => p.id === id), [properties, id]);
   const [imgIndex, setImgIndex] = useState(0);
+
+  // Count a view whenever someone opens this property detail page.
+  useEffect(() => {
+    if (!id) return;
+    trackPropertyView(id);
+  }, [id]);
 
   const agent = useMemo(() => {
     if (!property) return null;

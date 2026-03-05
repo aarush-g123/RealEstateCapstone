@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || "/api";
+axios.defaults.withCredentials = true;
 
 // Prototype-only Google owner sign-in using Google Identity Services (GIS).
 // Access is restricted to a single "owner" email set in VITE_OWNER_EMAIL.
@@ -52,7 +56,7 @@ export default function OwnerLoginPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canInit, clientId, navigate]);
 
-  function handleCredentialResponse(response) {
+  async function handleCredentialResponse(response) {
     try {
       // Decode the JWT payload (prototype-level). In production, verify on the backend.
       const payload = decodeJwtPayload(response.credential);
@@ -75,6 +79,13 @@ export default function OwnerLoginPage() {
 
       localStorage.setItem("ownerAuthed", "true");
       localStorage.setItem("ownerEmail", email);
+
+      // Also establish a backend session (needed for admin-only endpoints like analytics summary).
+      try {
+        await axios.post("/auth/login", { idToken: response.credential });
+      } catch {
+        // If this fails, we still allow the prototype UI to proceed.
+      }
 
       setStatus("ok");
       setMessage(`Signed in as ${email}. Redirecting…`);
