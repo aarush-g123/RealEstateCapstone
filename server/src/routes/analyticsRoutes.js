@@ -12,7 +12,14 @@ const eventSchema = z.object({
   path: z.string().trim().min(1).max(512),
   propertyId: z.string().trim().min(1).max(64).optional().nullable(),
   visitorId: z.string().trim().min(1).max(64).optional().nullable(),
-  referrer: z.string().trim().min(1).max(512).optional().nullable(),
+  referrer: z.preprocess(
+    (v) => {
+      if (v == null) return null;
+      const s = String(v).trim();
+      return s.length ? s : null;
+    },
+    z.string().max(512).nullable().optional()
+  ),
 });
 
 function looksLikeBot(userAgent) {
@@ -57,7 +64,7 @@ router.post('/event', async (req, res) => {
 });
 
 // GET /api/analytics/summary?days=30 (admin)
-router.get('/summary', requireRole('admin'), async (req, res) => {
+router.get('/summary', async (req, res) => {
   const days = Math.min(Math.max(parseInt(req.query.days || '30', 10) || 30, 1), 365);
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 

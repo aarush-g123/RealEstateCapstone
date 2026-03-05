@@ -39,6 +39,11 @@ export default function PropertyDetailPage() {
   const images = property.images || [];
   const mainImg = images[Math.min(imgIndex, images.length - 1)];
 
+  const lotSqft =
+    property.lotSizeSqft != null && Number.isFinite(Number(property.lotSizeSqft))
+      ? Number(property.lotSizeSqft)
+      : null;
+
   return (
     <div className="space-y-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -91,11 +96,45 @@ export default function PropertyDetailPage() {
                 {property.baths} baths
               </span>
               <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
-                {property.sqft.toLocaleString()} sqft
+                {Number(property.sqft).toLocaleString()} sqft
               </span>
+
+              {property.yearBuilt ? (
+                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                  Built {property.yearBuilt}
+                </span>
+              ) : null}
+
+              {lotSqft ? (
+                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                  Lot {lotSqft.toLocaleString()} sqft
+                </span>
+              ) : null}
+
+              {property.parking ? (
+                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                  {property.parking}
+                </span>
+              ) : null}
             </div>
 
             <p className="mt-5 text-white/70 leading-relaxed">{property.description}</p>
+
+            {Array.isArray(property.features) && property.features.length ? (
+              <div className="mt-6">
+                <div className="text-xs tracking-[0.25em] uppercase text-white/50">Features</div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {property.features.slice(0, 24).map((f) => (
+                    <span
+                      key={f}
+                      className="px-3 py-1 rounded-full bg-black/20 border border-white/10 text-sm text-white/75"
+                    >
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               <button onClick={() => alert("Tour requested (prototype)")} className="btnPrimary">

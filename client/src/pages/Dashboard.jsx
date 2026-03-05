@@ -2,6 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { addProperty, removeProperty, useProperties } from "../utils/propertiesStore.js";
 import { clearPropertyMetrics, resetMetrics, useMetrics } from "../utils/metricsStore.js";
+import axios from "axios";
+
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || "/api";
+axios.defaults.withCredentials = true;
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -20,7 +24,18 @@ export default function DashboardPage() {
     imagesText: "",
     description: "",
     featured: false,
+
+    // Optional extracted / extra fields
+    yearBuilt: "",
+    lotSizeSqft: "",
+    parking: "",
+    featuresText: "",
+
+    // Paste-to-parse
+    rawFacts: "",
   });
+
+  const [autoFillStatus, setAutoFillStatus] = useState({ state: "idle", msg: "" }); // idle|ok|error
 
   const canSubmit = useMemo(() => {
     return (
@@ -76,9 +91,7 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
           <div className="text-sm tracking-[0.35em] uppercase text-white/60">Listings</div>
           <div className="mt-3 text-white/80 font-semibold">Manage property cards</div>
-          <div className="text-sm text-white/70 mt-2">
-            Update active listings shown on the site.
-          </div>
+          <div className="text-sm text-white/70 mt-2">Update active listings shown on the site.</div>
 
           <Link
             to="/properties"
@@ -91,9 +104,7 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
           <div className="text-sm tracking-[0.35em] uppercase text-white/60">Messages</div>
           <div className="mt-3 text-white/80 font-semibold">Inquiries and tour requests</div>
-          <div className="text-sm text-white/70 mt-2">
-            View contact submissions from visitors.
-          </div>
+          <div className="text-sm text-white/70 mt-2">View contact submissions from visitors.</div>
 
           <Link
             to="/contact"
@@ -121,6 +132,11 @@ export default function DashboardPage() {
                 .map((s) => s.trim())
                 .filter(Boolean);
 
+              const features = String(form.featuresText || "")
+                .split(/\n|,|;/)
+                .map((s) => s.trim())
+                .filter(Boolean);
+
               const next = addProperty({
                 title: form.title.trim(),
                 city: form.city.trim(),
@@ -130,13 +146,24 @@ export default function DashboardPage() {
                 sqft: Number(form.sqft),
                 type: form.type,
                 status: form.status,
-                images: images.length ? images : ["https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1400&q=80"],
+                images: images.length
+                  ? images
+                  : [
+                      "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1400&q=80",
+                    ],
                 description: form.description.trim() || "New listing.",
                 agentId: "a-1",
                 featured: Boolean(form.featured),
+
+                // Optional fields (only include if provided)
+                yearBuilt: String(form.yearBuilt).trim() ? Number(form.yearBuilt) : undefined,
+                lotSizeSqft: String(form.lotSizeSqft).trim() ? Number(form.lotSizeSqft) : undefined,
+                parking: String(form.parking).trim() ? String(form.parking).trim() : undefined,
+                features: features.length ? features : undefined,
               });
 
               setProperties(next);
+
               setForm({
                 title: "",
                 city: "",
@@ -149,89 +176,250 @@ export default function DashboardPage() {
                 imagesText: "",
                 description: "",
                 featured: false,
+
+                yearBuilt: "",
+                lotSizeSqft: "",
+                parking: "",
+                featuresText: "",
+                rawFacts: "",
               });
+
+              setAutoFillStatus({ state: "idle", msg: "" });
             }}
           >
-            <input
-              className="inputDark"
-              placeholder="Title (e.g., 4BR Colonial in Ridgewood)"
-              value={form.title}
-              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-            />
+            {/* Paste-to-parse (optional) */}
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="text-xs tracking-[0.25em] uppercase text-white/50">Paste-to-parse (optional)</div>
+              <p className="mt-2 text-xs text-white/60">
+                Paste listing facts (MLS input, tax card, internal sheet, or agent-written notes). We’ll auto-fill what
+                we can.
+              </p>
 
-            <input
-              className="inputDark"
-              placeholder="City, State (e.g., Ramsey, NJ)"
-              value={form.city}
-              onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
-            />
+              <textarea
+                className="inputDark mt-3 min-h-[110px]"
+                placeholder={
+                  "Example: 4 bed 3 bath Colonial, 2,450 sqft, built in 1998, 0.18 acres, 2-car garage, hardwood floors..."
+                }
+                value={form.rawFacts}
+                onChange={(e) => setForm((p) => ({ ...p, rawFacts: e.target.value }))}
+              />
 
-            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  className="btnGhost"
+                  onClick={async () => {
+                    setAutoFillStatus({ state: "idle", msg: "" });
+                    const rawText = String(form.rawFacts || "").trim();
+                    if (!rawText) return;
+
+                    try {
+                      const res = await axios.post("/properties/extract-facts", { rawText });
+                      const d = res?.data?.data || {};
+
+                      setForm((p) => {
+                        const next = { ...p };
+
+                        if (d.beds != null) next.beds = String(d.beds);
+                        if (d.baths != null) next.baths = String(d.baths);
+                        if (d.squareFeet != null) next.sqft = String(d.squareFeet);
+                        if (d.yearBuilt != null) next.yearBuilt = String(d.yearBuilt);
+                        if (d.lotSizeSqft != null) next.lotSizeSqft = String(d.lotSizeSqft);
+                        if (d.parking) next.parking = String(d.parking);
+
+                        if (Array.isArray(d.features) && d.features.length) {
+                          next.featuresText = d.features.join("\n");
+                        }
+
+                        // Map extracted propertyType -> existing select (keep your select values stable)
+                        if (d.propertyType) {
+                          const t = String(d.propertyType).toLowerCase();
+                          if (t.includes("condo")) next.type = "Condo";
+                          else if (t.includes("cabin")) next.type = "Cabin";
+                          else next.type = "House";
+                        }
+
+                        return next;
+                      });
+
+                      setAutoFillStatus({
+                        state: "ok",
+                        msg: "Auto-fill applied. Review + adjust anything that looks off.",
+                      });
+                    } catch {
+                      setAutoFillStatus({
+                        state: "error",
+                        msg: "Auto-fill failed. Make sure you’re signed in and the server is running.",
+                      });
+                    }
+                  }}
+                >
+                  Auto-fill facts
+                </button>
+
+                {autoFillStatus.state !== "idle" && (
+                  <span className={`text-xs ${autoFillStatus.state === "ok" ? "text-emerald-300" : "text-rose-300"}`}>
+                    {autoFillStatus.msg}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Basic info */}
+            <div>
+              <label className="block text-xs text-white/60 mb-1">Title</label>
               <input
                 className="inputDark"
-                placeholder="Price"
-                inputMode="numeric"
-                value={form.price}
-                onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
-              />
-              <input
-                className="inputDark"
-                placeholder="Beds"
-                inputMode="numeric"
-                value={form.beds}
-                onChange={(e) => setForm((p) => ({ ...p, beds: e.target.value }))}
-              />
-              <input
-                className="inputDark"
-                placeholder="Baths"
-                inputMode="numeric"
-                value={form.baths}
-                onChange={(e) => setForm((p) => ({ ...p, baths: e.target.value }))}
+                placeholder="e.g., 4BR Colonial in Ridgewood"
+                value={form.title}
+                onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
               />
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div>
+              <label className="block text-xs text-white/60 mb-1">City, State</label>
               <input
                 className="inputDark"
-                placeholder="Sqft"
-                inputMode="numeric"
-                value={form.sqft}
-                onChange={(e) => setForm((p) => ({ ...p, sqft: e.target.value }))}
+                placeholder="e.g., Ramsey, NJ"
+                value={form.city}
+                onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
               />
-
-              <select
-                className="selectDark"
-                value={form.status}
-                onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
-              >
-                <option className="text-slate-900">For Sale</option>
-                <option className="text-slate-900">For Rent</option>
-              </select>
-
-              <select
-                className="selectDark"
-                value={form.type}
-                onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
-              >
-                <option className="text-slate-900">House</option>
-                <option className="text-slate-900">Condo</option>
-                <option className="text-slate-900">Cabin</option>
-              </select>
             </div>
 
-            <textarea
-              className="inputDark min-h-[90px]"
-              placeholder={'Image URLs (one per line)\nhttps://...\nhttps://...'}
-              value={form.imagesText}
-              onChange={(e) => setForm((p) => ({ ...p, imagesText: e.target.value }))}
-            />
+            {/* Price / Beds / Baths */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Price</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.price}
+                  onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
+                />
+              </div>
 
-            <textarea
-              className="inputDark min-h-[90px]"
-              placeholder="Short description"
-              value={form.description}
-              onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-            />
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Beds</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.beds}
+                  onChange={(e) => setForm((p) => ({ ...p, beds: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Baths</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.baths}
+                  onChange={(e) => setForm((p) => ({ ...p, baths: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {/* Sqft / Year Built / Lot Size */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Sqft</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.sqft}
+                  onChange={(e) => setForm((p) => ({ ...p, sqft: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Year Built (optional)</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.yearBuilt}
+                  onChange={(e) => setForm((p) => ({ ...p, yearBuilt: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Lot Size (sqft, optional)</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.lotSizeSqft}
+                  onChange={(e) => setForm((p) => ({ ...p, lotSizeSqft: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {/* Parking / Features / Status / Type */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Parking (optional)</label>
+                <input
+                  className="inputDark"
+                  value={form.parking}
+                  onChange={(e) => setForm((p) => ({ ...p, parking: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Features (optional)</label>
+                <textarea
+                  className="inputDark min-h-[44px]"
+                  placeholder={"One per line or comma-separated"}
+                  value={form.featuresText}
+                  onChange={(e) => setForm((p) => ({ ...p, featuresText: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Status</label>
+                <select
+                  className="selectDark"
+                  value={form.status}
+                  onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
+                >
+                  <option className="text-slate-900">For Sale</option>
+                  <option className="text-slate-900">For Rent</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Property Type</label>
+                <select
+                  className="selectDark"
+                  value={form.type}
+                  onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
+                >
+                  <option className="text-slate-900">House</option>
+                  <option className="text-slate-900">Condo</option>
+                  <option className="text-slate-900">Cabin</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Media */}
+            <div>
+              <label className="block text-xs text-white/60 mb-1">Image URLs</label>
+              <textarea
+                className="inputDark min-h-[90px]"
+                placeholder={"One per line\nhttps://...\nhttps://..."}
+                value={form.imagesText}
+                onChange={(e) => setForm((p) => ({ ...p, imagesText: e.target.value }))}
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-xs text-white/60 mb-1">Description</label>
+              <textarea
+                className="inputDark min-h-[90px]"
+                placeholder="Short description"
+                value={form.description}
+                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+              />
+            </div>
 
             <label className="flex items-center gap-2 text-sm text-white/70">
               <input
@@ -255,9 +443,7 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
           <div className="text-sm tracking-[0.35em] uppercase text-white/60">Your listings</div>
           <div className="mt-3 text-white/80 font-semibold">Remove properties</div>
-          <p className="mt-2 text-sm text-white/70">
-            These update immediately on the Properties page.
-          </p>
+          <p className="mt-2 text-sm text-white/70">These update immediately on the Properties page.</p>
 
           <div className="mt-6 space-y-3 max-h-[520px] overflow-auto pr-1">
             {properties.map((p) => (
@@ -291,9 +477,7 @@ export default function DashboardPage() {
               </div>
             ))}
 
-            {properties.length === 0 && (
-              <div className="text-sm text-white/70">No properties yet.</div>
-            )}
+            {properties.length === 0 && <div className="text-sm text-white/70">No properties yet.</div>}
           </div>
         </div>
       </div>
