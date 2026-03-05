@@ -1,0 +1,21 @@
+{
+  "name": "realestatecapstone",
+  "version": "1.0.0",
+  "description": "Full-stack Hello Contacts app using: - React + Vite + Tailwind (frontend) - Node.js + Express (backend) - MySQL + Sequelize (DB) - Google Identity Services for auth",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aarush-g123/RealEstateCapstone.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/aarush-g123/RealEstateCapstone/issues"
+  },
+  "homepage": "https://github.com/aarush-g123/RealEstateCapstone#readme"
+}
