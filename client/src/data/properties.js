@@ -38,7 +38,7 @@ export const properties = [
     ],
     description:
       "A sleek, airy loft with floor-to-ceiling windows, skyline views, and walkability to everything. Ideal for city life with style.",
-    agentId: "a-2",
+    agentId: "a-1",
     featured: true,
   },
   {
@@ -78,7 +78,7 @@ export const properties = [
     ],
     description:
       "A clean, comfortable home near schools and parks. Simple, practical, and ready to move in.",
-    agentId: "a-3",
+    agentId: "a-1",
     featured: false,
   },
 ];

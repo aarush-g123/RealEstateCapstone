@@ -12,6 +12,22 @@ export default function DashboardPage() {
   const [properties, setProperties] = useProperties();
   const [metrics, refreshMetrics] = useMetrics();
 
+  const [contacts, setContacts] = useState([]);
+  const [contactsLoading, setContactsLoading] = useState(true);
+
+  async function loadContacts() {
+    try {
+      setContactsLoading(true);
+      const res = await axios.get("/contacts");
+      setContacts(res.data.contacts || []);
+    } catch (err) {
+      console.error(err);
+      setContacts([]);
+    } finally {
+      setContactsLoading(false);
+    }
+  }
+
   const [form, setForm] = useState({
     title: "",
     city: "",
@@ -50,7 +66,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const authed = localStorage.getItem("ownerAuthed") === "true";
-    if (!authed) navigate("/owner-login");
+    if (!authed) {
+      navigate("/owner-login");
+      return;
+    }
+
+    loadContacts();
   }, [navigate]);
 
   const email = localStorage.getItem("ownerEmail");
@@ -479,6 +500,53 @@ export default function DashboardPage() {
 
             {properties.length === 0 && <div className="text-sm text-white/70">No properties yet.</div>}
           </div>
+        </div>
+      </div>
+
+      {/* MESSAGES */}
+      <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-7">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="text-sm tracking-[0.35em] uppercase text-white/60">Messages</div>
+            <div className="mt-3 text-white/80 font-semibold">Property inquiries</div>
+            <p className="mt-2 text-sm text-white/70">Messages sent from property pages and the contact form.</p>
+          </div>
+
+          <button className="btnGhost" onClick={loadContacts}>
+            Refresh
+          </button>
+        </div>
+
+        <div className="mt-6 space-y-4 max-h-[540px] overflow-auto pr-1">
+          {contactsLoading ? (
+            <div className="text-sm text-white/70">Loading messages...</div>
+          ) : contacts.length === 0 ? (
+            <div className="text-sm text-white/70">No messages yet.</div>
+          ) : (
+            contacts.map((c) => (
+              <div key={c.id} className="rounded-2xl border border-white/10 bg-black/20 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-white font-semibold">{c.name}</div>
+                    <div className="mt-1 text-sm text-white/60">{c.email}{c.phone ? ` • ${c.phone}` : ""}</div>
+                  </div>
+
+                  <div className="text-right text-xs text-white/50">
+                    <div>{c.source === "property-detail" ? "Property inquiry" : "General contact"}</div>
+                    <div className="mt-1">{new Date(c.createdAt).toLocaleString()}</div>
+                  </div>
+                </div>
+
+                {c.propertyTitle ? (
+                  <div className="mt-4 inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+                    {c.propertyTitle}
+                  </div>
+                ) : null}
+
+                <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-white/80">{c.message}</p>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

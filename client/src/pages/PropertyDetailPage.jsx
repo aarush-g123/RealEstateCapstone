@@ -154,7 +154,14 @@ export default function PropertyDetailPage() {
               <button onClick={() => alert("Saved (prototype)")} className="btnGhost">
                 Save to favorites
               </button>
-              <button onClick={() => navigate("/contact")} className="btnPrimary">
+              <button
+                onClick={() =>
+                  navigate("/contact", {
+                    state: { property: { id: property.id, title: property.title } },
+                  })
+                }
+                className="btnPrimary"
+              >
                 Contact
               </button>
               <button onClick={() => navigate("/login")} className="btnGhost">
@@ -189,7 +196,14 @@ export default function PropertyDetailPage() {
               </div>
 
               <div className="mt-6 flex gap-2">
-                <button onClick={() => alert("Message sent (prototype)")} className="flex-1 btnPrimary">
+                <button
+                  onClick={() =>
+                    navigate("/contact", {
+                      state: { property: { id: property.id, title: property.title } },
+                    })
+                  }
+                  className="flex-1 btnPrimary"
+                >
                   Message
                 </button>
                 <Link to="/agents" className="btnGhost">
