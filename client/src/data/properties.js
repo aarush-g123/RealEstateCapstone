@@ -81,6 +81,58 @@ export const properties = [
     agentId: "a-1",
     featured: false,
   },
+  {
+    id: "prop-5",
+    title: "Elegant Ridgewood Colonial",
+    location: "Ridgewood, NJ",
+    status: "For Sale",
+    type: "House",
+    featured: true,
+    price: "$1,250,000",
+    beds: 5,
+    baths: 4,
+    sqft: 3200,
+    image: "/images/house5.jpg"
+  },
+  {
+    id: "prop-6",
+    title: "Hoboken Riverfront Condo",
+    location: "Hoboken, NJ",
+    status: "For Sale",
+    type: "Condo",
+    featured: true,
+    price: "$875,000",
+    beds: 2,
+    baths: 2,
+    sqft: 1200,
+    image: "/images/house6.jpg"
+  },
+  {
+    id: "prop-7",
+    title: "Montclair Townhome Retreat",
+    location: "Montclair, NJ",
+    status: "For Sale",
+    type: "Townhouse",
+    featured: false,
+    price: "$720,000",
+    beds: 3,
+    baths: 3,
+    sqft: 1800,
+    image: "/images/house7.jpg"
+  },
+  {
+    id: "prop-8",
+    title: "Tenafly Luxury Estate",
+    location: "Tenafly, NJ",
+    status: "For Sale",
+    type: "House",
+    featured: true,
+    price: "$2,100,000",
+    beds: 6,
+    baths: 6,
+    sqft: 5000,
+    image: "/images/house8.jpg"
+  }
 ];
 
 export function formatPrice(n) {
