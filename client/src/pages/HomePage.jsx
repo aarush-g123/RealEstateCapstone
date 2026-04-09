@@ -73,17 +73,17 @@ function StatsBand() {
 function ReviewsDark() {
   const reviews = [
     {
-      name: "Client A",
+      name: "Priya Shah",
       text:
         "Sweta was direct, fast, and honest. We never felt pushed. She negotiated hard and made the process simple.",
     },
     {
-      name: "Client B",
+      name: "Michael Russo",
       text:
         "Extremely responsive and detail-oriented. Every question got answered quickly and clearly.",
     },
     {
-      name: "Client C",
+      name: "Anita Desai",
       text:
         "Strong market knowledge. Realistic expectations and excellent guidance from start to finish.",
     },

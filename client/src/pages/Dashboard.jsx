@@ -41,17 +41,14 @@ export default function DashboardPage() {
     description: "",
     featured: false,
 
-    // Optional extracted / extra fields
     yearBuilt: "",
     lotSizeSqft: "",
     parking: "",
     featuresText: "",
-
-    // Paste-to-parse
     rawFacts: "",
   });
 
-  const [autoFillStatus, setAutoFillStatus] = useState({ state: "idle", msg: "" }); // idle|ok|error
+  const [autoFillStatus, setAutoFillStatus] = useState({ state: "idle", msg: "" });
 
   const canSubmit = useMemo(() => {
     return (
@@ -95,6 +92,13 @@ export default function DashboardPage() {
       .sort((a, b) => b.views - a.views);
   }, [metrics]);
 
+  const darkInputClass =
+    "w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white placeholder:text-slate-400 outline-none";
+  const darkTextareaClass =
+    "w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white placeholder:text-slate-400 outline-none";
+  const darkSelectClass =
+    "w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none";
+
   return (
     <div className="panel p-10">
       <h1 className="text-4xl font-semibold tracking-wide text-white">Owner Dashboard</h1>
@@ -108,36 +112,7 @@ export default function DashboardPage() {
         ) : null}
       </p>
 
-      <div className="mt-8 grid gap-6 sm:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
-          <div className="text-sm tracking-[0.35em] uppercase text-white/60">Listings</div>
-          <div className="mt-3 text-white/80 font-semibold">Manage property cards</div>
-          <div className="text-sm text-white/70 mt-2">Update active listings shown on the site.</div>
-
-          <Link
-            to="/properties"
-            className="mt-5 inline-block text-sm font-semibold text-white/80 hover:text-white hover:underline transition"
-          >
-            View properties →
-          </Link>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
-          <div className="text-sm tracking-[0.35em] uppercase text-white/60">Messages</div>
-          <div className="mt-3 text-white/80 font-semibold">Inquiries and tour requests</div>
-          <div className="text-sm text-white/70 mt-2">View contact submissions from visitors.</div>
-
-          <Link
-            to="/contact"
-            className="mt-5 inline-block text-sm font-semibold text-white/80 hover:text-white hover:underline transition"
-          >
-            Contact page →
-          </Link>
-        </div>
-      </div>
-
-      {/* PROPERTY MANAGER */}
-      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
           <div className="text-sm tracking-[0.35em] uppercase text-white/60">Add listing</div>
           <div className="mt-3 text-white/80 font-semibold">Create a new property</div>
@@ -175,8 +150,6 @@ export default function DashboardPage() {
                 description: form.description.trim() || "New listing.",
                 agentId: "a-1",
                 featured: Boolean(form.featured),
-
-                // Optional fields (only include if provided)
                 yearBuilt: String(form.yearBuilt).trim() ? Number(form.yearBuilt) : undefined,
                 lotSizeSqft: String(form.lotSizeSqft).trim() ? Number(form.lotSizeSqft) : undefined,
                 parking: String(form.parking).trim() ? String(form.parking).trim() : undefined,
@@ -197,7 +170,6 @@ export default function DashboardPage() {
                 imagesText: "",
                 description: "",
                 featured: false,
-
                 yearBuilt: "",
                 lotSizeSqft: "",
                 parking: "",
@@ -208,7 +180,6 @@ export default function DashboardPage() {
               setAutoFillStatus({ state: "idle", msg: "" });
             }}
           >
-            {/* Paste-to-parse (optional) */}
             <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
               <div className="text-xs tracking-[0.25em] uppercase text-white/50">Paste-to-parse (optional)</div>
               <p className="mt-2 text-xs text-white/60">
@@ -217,10 +188,8 @@ export default function DashboardPage() {
               </p>
 
               <textarea
-                className="inputDark mt-3 min-h-[110px]"
-                placeholder={
-                  "Example: 4 bed 3 bath Colonial, 2,450 sqft, built in 1998, 0.18 acres, 2-car garage, hardwood floors..."
-                }
+                className={`${darkTextareaClass} mt-3 min-h-[110px]`}
+                placeholder="Example: 4 bed 3 bath Colonial, 2,450 sqft, built in 1998, 0.18 acres, 2-car garage, hardwood floors..."
                 value={form.rawFacts}
                 onChange={(e) => setForm((p) => ({ ...p, rawFacts: e.target.value }))}
               />
@@ -252,7 +221,6 @@ export default function DashboardPage() {
                           next.featuresText = d.features.join("\n");
                         }
 
-                        // Map extracted propertyType -> existing select (keep your select values stable)
                         if (d.propertyType) {
                           const t = String(d.propertyType).toLowerCase();
                           if (t.includes("condo")) next.type = "Condo";
@@ -286,11 +254,10 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Basic info */}
             <div>
               <label className="block text-xs text-white/60 mb-1">Title</label>
               <input
-                className="inputDark"
+                className={darkInputClass}
                 placeholder="e.g., 4BR Colonial in Ridgewood"
                 value={form.title}
                 onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
@@ -300,19 +267,18 @@ export default function DashboardPage() {
             <div>
               <label className="block text-xs text-white/60 mb-1">City, State</label>
               <input
-                className="inputDark"
+                className={darkInputClass}
                 placeholder="e.g., Ramsey, NJ"
                 value={form.city}
                 onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
               />
             </div>
 
-            {/* Price / Beds / Baths */}
             <div className="grid gap-3 sm:grid-cols-3">
               <div>
                 <label className="block text-xs text-white/60 mb-1">Price</label>
                 <input
-                  className="inputDark"
+                  className={darkInputClass}
                   inputMode="numeric"
                   value={form.price}
                   onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
@@ -322,7 +288,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Beds</label>
                 <input
-                  className="inputDark"
+                  className={darkInputClass}
                   inputMode="numeric"
                   value={form.beds}
                   onChange={(e) => setForm((p) => ({ ...p, beds: e.target.value }))}
@@ -332,7 +298,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Baths</label>
                 <input
-                  className="inputDark"
+                  className={darkInputClass}
                   inputMode="numeric"
                   value={form.baths}
                   onChange={(e) => setForm((p) => ({ ...p, baths: e.target.value }))}
@@ -340,12 +306,11 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Sqft / Year Built / Lot Size */}
             <div className="grid gap-3 sm:grid-cols-3">
               <div>
                 <label className="block text-xs text-white/60 mb-1">Sqft</label>
                 <input
-                  className="inputDark"
+                  className={darkInputClass}
                   inputMode="numeric"
                   value={form.sqft}
                   onChange={(e) => setForm((p) => ({ ...p, sqft: e.target.value }))}
@@ -355,7 +320,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Year Built (optional)</label>
                 <input
-                  className="inputDark"
+                  className={darkInputClass}
                   inputMode="numeric"
                   value={form.yearBuilt}
                   onChange={(e) => setForm((p) => ({ ...p, yearBuilt: e.target.value }))}
@@ -365,7 +330,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Lot Size (sqft, optional)</label>
                 <input
-                  className="inputDark"
+                  className={darkInputClass}
                   inputMode="numeric"
                   value={form.lotSizeSqft}
                   onChange={(e) => setForm((p) => ({ ...p, lotSizeSqft: e.target.value }))}
@@ -373,12 +338,11 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Parking / Features / Status / Type */}
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="block text-xs text-white/60 mb-1">Parking (optional)</label>
                 <input
-                  className="inputDark"
+                  className={darkInputClass}
                   value={form.parking}
                   onChange={(e) => setForm((p) => ({ ...p, parking: e.target.value }))}
                 />
@@ -387,8 +351,8 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Features (optional)</label>
                 <textarea
-                  className="inputDark min-h-[44px]"
-                  placeholder={"One per line or comma-separated"}
+                  className={`${darkTextareaClass} min-h-[44px]`}
+                  placeholder="One per line or comma-separated"
                   value={form.featuresText}
                   onChange={(e) => setForm((p) => ({ ...p, featuresText: e.target.value }))}
                 />
@@ -397,7 +361,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Status</label>
                 <select
-                  className="selectDark"
+                  className={darkSelectClass}
                   value={form.status}
                   onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
                 >
@@ -409,7 +373,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Property Type</label>
                 <select
-                  className="selectDark"
+                  className={darkSelectClass}
                   value={form.type}
                   onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
                 >
@@ -420,22 +384,20 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Media */}
             <div>
               <label className="block text-xs text-white/60 mb-1">Image URLs</label>
               <textarea
-                className="inputDark min-h-[90px]"
+                className={`${darkTextareaClass} min-h-[90px]`}
                 placeholder={"One per line\nhttps://...\nhttps://..."}
                 value={form.imagesText}
                 onChange={(e) => setForm((p) => ({ ...p, imagesText: e.target.value }))}
               />
             </div>
 
-            {/* Description */}
             <div>
               <label className="block text-xs text-white/60 mb-1">Description</label>
               <textarea
-                className="inputDark min-h-[90px]"
+                className={`${darkTextareaClass} min-h-[90px]`}
                 placeholder="Short description"
                 value={form.description}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
@@ -503,7 +465,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* MESSAGES */}
       <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -528,7 +489,10 @@ export default function DashboardPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="text-white font-semibold">{c.name}</div>
-                    <div className="mt-1 text-sm text-white/60">{c.email}{c.phone ? ` • ${c.phone}` : ""}</div>
+                    <div className="mt-1 text-sm text-white/60">
+                      {c.email}
+                      {c.phone ? ` • ${c.phone}` : ""}
+                    </div>
                   </div>
 
                   <div className="text-right text-xs text-white/50">
@@ -550,7 +514,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* METRICS */}
       <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
