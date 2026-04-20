@@ -41,14 +41,19 @@ export default function DashboardPage() {
     description: "",
     featured: false,
 
+    // Optional extracted / extra fields
     yearBuilt: "",
     lotSizeSqft: "",
     parking: "",
     featuresText: "",
+
+    // Paste-to-parse
     rawFacts: "",
   });
 
-  const [autoFillStatus, setAutoFillStatus] = useState({ state: "idle", msg: "" });
+  const [autoFillStatus, setAutoFillStatus] = useState({ state: "idle", msg: "" }); // idle|ok|error
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvStatus, setCsvStatus] = useState({ state: "idle", msg: "" });
 
   const canSubmit = useMemo(() => {
     return (
@@ -92,13 +97,6 @@ export default function DashboardPage() {
       .sort((a, b) => b.views - a.views);
   }, [metrics]);
 
-  const darkInputClass =
-    "w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white placeholder:text-slate-400 outline-none";
-  const darkTextareaClass =
-    "w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white placeholder:text-slate-400 outline-none";
-  const darkSelectClass =
-    "w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none";
-
   return (
     <div className="panel p-10">
       <h1 className="text-4xl font-semibold tracking-wide text-white">Owner Dashboard</h1>
@@ -112,7 +110,36 @@ export default function DashboardPage() {
         ) : null}
       </p>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+      <div className="mt-8 grid gap-6 sm:grid-cols-2">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
+          <div className="text-sm tracking-[0.35em] uppercase text-white/60">Listings</div>
+          <div className="mt-3 text-white/80 font-semibold">Manage property cards</div>
+          <div className="text-sm text-white/70 mt-2">Update active listings shown on the site.</div>
+
+          <Link
+            to="/properties"
+            className="mt-5 inline-block text-sm font-semibold text-white/80 hover:text-white hover:underline transition"
+          >
+            View properties →
+          </Link>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
+          <div className="text-sm tracking-[0.35em] uppercase text-white/60">Messages</div>
+          <div className="mt-3 text-white/80 font-semibold">Inquiries and tour requests</div>
+          <div className="text-sm text-white/70 mt-2">View contact submissions from visitors.</div>
+
+          <Link
+            to="/contact"
+            className="mt-5 inline-block text-sm font-semibold text-white/80 hover:text-white hover:underline transition"
+          >
+            Contact page →
+          </Link>
+        </div>
+      </div>
+
+      {/* PROPERTY MANAGER */}
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
           <div className="text-sm tracking-[0.35em] uppercase text-white/60">Add listing</div>
           <div className="mt-3 text-white/80 font-semibold">Create a new property</div>
@@ -150,6 +177,8 @@ export default function DashboardPage() {
                 description: form.description.trim() || "New listing.",
                 agentId: "a-1",
                 featured: Boolean(form.featured),
+
+                // Optional fields (only include if provided)
                 yearBuilt: String(form.yearBuilt).trim() ? Number(form.yearBuilt) : undefined,
                 lotSizeSqft: String(form.lotSizeSqft).trim() ? Number(form.lotSizeSqft) : undefined,
                 parking: String(form.parking).trim() ? String(form.parking).trim() : undefined,
@@ -178,8 +207,11 @@ export default function DashboardPage() {
               });
 
               setAutoFillStatus({ state: "idle", msg: "" });
+              setCsvFile(null);
+              setCsvStatus({ state: "idle", msg: "" });
             }}
           >
+            {/* Paste-to-parse (optional) */}
             <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
               <div className="text-xs tracking-[0.25em] uppercase text-white/50">Paste-to-parse (optional)</div>
               <p className="mt-2 text-xs text-white/60">
@@ -188,8 +220,10 @@ export default function DashboardPage() {
               </p>
 
               <textarea
-                className={`${darkTextareaClass} mt-3 min-h-[110px]`}
-                placeholder="Example: 4 bed 3 bath Colonial, 2,450 sqft, built in 1998, 0.18 acres, 2-car garage, hardwood floors..."
+                className="inputDark mt-3 min-h-[110px]"
+                placeholder={
+                  "Example: 4 bed 3 bath Colonial, 2,450 sqft, built in 1998, 0.18 acres, 2-car garage, hardwood floors..."
+                }
                 value={form.rawFacts}
                 onChange={(e) => setForm((p) => ({ ...p, rawFacts: e.target.value }))}
               />
@@ -254,10 +288,96 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* CSV upload (optional) */}
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="text-xs tracking-[0.25em] uppercase text-white/50">CSV upload (optional)</div>
+              <p className="mt-2 text-xs text-white/60">
+                Upload a CSV file and we’ll use the first row to auto-fill this form.
+              </p>
+
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                className="mt-3 block w-full text-sm text-white file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-sm file:text-white hover:file:bg-white/20"
+                onChange={(e) => {
+                  setCsvStatus({ state: "idle", msg: "" });
+                  setCsvFile(e.target.files?.[0] || null);
+                }}
+              />
+
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  className="btnGhost"
+                  onClick={async () => {
+                    setCsvStatus({ state: "idle", msg: "" });
+
+                    if (!csvFile) {
+                      setCsvStatus({ state: "error", msg: "Choose a CSV file first." });
+                      return;
+                    }
+
+                    try {
+                      const formData = new FormData();
+                      formData.append("file", csvFile);
+
+                      const res = await axios.post("/properties/import-csv-preview", formData, {
+                        headers: {
+                          "Content-Type": "multipart/form-data",
+                        },
+                      });
+
+                      const d = res?.data?.data || {};
+
+                      setForm((p) => ({
+                        ...p,
+                        title: d.title != null && d.title !== "" ? String(d.title) : p.title,
+                        city: d.city != null && d.city !== "" ? String(d.city) : p.city,
+                        price: d.price != null ? String(d.price) : p.price,
+                        beds: d.beds != null ? String(d.beds) : p.beds,
+                        baths: d.baths != null ? String(d.baths) : p.baths,
+                        sqft: d.sqft != null ? String(d.sqft) : p.sqft,
+                        type: d.type || p.type,
+                        status: d.status || p.status,
+                        description: d.description != null && d.description !== "" ? String(d.description) : p.description,
+                        yearBuilt: d.yearBuilt != null ? String(d.yearBuilt) : p.yearBuilt,
+                        lotSizeSqft: d.lotSizeSqft != null ? String(d.lotSizeSqft) : p.lotSizeSqft,
+                        parking: d.parking != null && d.parking !== "" ? String(d.parking) : p.parking,
+                        featuresText: d.featuresText != null && d.featuresText !== "" ? String(d.featuresText) : p.featuresText,
+                        imagesText: d.imagesText != null && d.imagesText !== "" ? String(d.imagesText) : p.imagesText,
+                      }));
+
+                      setCsvStatus({
+                        state: "ok",
+                        msg: `CSV imported. Using first row from ${res?.data?.rowCount || 1} row(s).`,
+                      });
+                    } catch (err) {
+                      console.error(err);
+                      setCsvStatus({
+                        state: "error",
+                        msg:
+                          err?.response?.data?.error ||
+                          "CSV import failed. Make sure the file has headers in the first row.",
+                      });
+                    }
+                  }}
+                >
+                  Import CSV
+                </button>
+
+                {csvStatus.state !== "idle" && (
+                  <span className={`text-xs ${csvStatus.state === "ok" ? "text-emerald-300" : "text-rose-300"}`}>
+                    {csvStatus.msg}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Basic info */}
             <div>
               <label className="block text-xs text-white/60 mb-1">Title</label>
               <input
-                className={darkInputClass}
+                className="inputDark"
                 placeholder="e.g., 4BR Colonial in Ridgewood"
                 value={form.title}
                 onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
@@ -267,18 +387,19 @@ export default function DashboardPage() {
             <div>
               <label className="block text-xs text-white/60 mb-1">City, State</label>
               <input
-                className={darkInputClass}
+                className="inputDark"
                 placeholder="e.g., Ramsey, NJ"
                 value={form.city}
                 onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
               />
             </div>
 
+            {/* Price / Beds / Baths */}
             <div className="grid gap-3 sm:grid-cols-3">
               <div>
                 <label className="block text-xs text-white/60 mb-1">Price</label>
                 <input
-                  className={darkInputClass}
+                  className="inputDark"
                   inputMode="numeric"
                   value={form.price}
                   onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
@@ -288,7 +409,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Beds</label>
                 <input
-                  className={darkInputClass}
+                  className="inputDark"
                   inputMode="numeric"
                   value={form.beds}
                   onChange={(e) => setForm((p) => ({ ...p, beds: e.target.value }))}
@@ -298,7 +419,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Baths</label>
                 <input
-                  className={darkInputClass}
+                  className="inputDark"
                   inputMode="numeric"
                   value={form.baths}
                   onChange={(e) => setForm((p) => ({ ...p, baths: e.target.value }))}
@@ -306,11 +427,12 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Sqft / Year Built / Lot Size */}
             <div className="grid gap-3 sm:grid-cols-3">
               <div>
                 <label className="block text-xs text-white/60 mb-1">Sqft</label>
                 <input
-                  className={darkInputClass}
+                  className="inputDark"
                   inputMode="numeric"
                   value={form.sqft}
                   onChange={(e) => setForm((p) => ({ ...p, sqft: e.target.value }))}
@@ -320,7 +442,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Year Built (optional)</label>
                 <input
-                  className={darkInputClass}
+                  className="inputDark"
                   inputMode="numeric"
                   value={form.yearBuilt}
                   onChange={(e) => setForm((p) => ({ ...p, yearBuilt: e.target.value }))}
@@ -330,7 +452,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Lot Size (sqft, optional)</label>
                 <input
-                  className={darkInputClass}
+                  className="inputDark"
                   inputMode="numeric"
                   value={form.lotSizeSqft}
                   onChange={(e) => setForm((p) => ({ ...p, lotSizeSqft: e.target.value }))}
@@ -338,11 +460,12 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Parking / Features / Status / Type */}
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="block text-xs text-white/60 mb-1">Parking (optional)</label>
                 <input
-                  className={darkInputClass}
+                  className="inputDark"
                   value={form.parking}
                   onChange={(e) => setForm((p) => ({ ...p, parking: e.target.value }))}
                 />
@@ -351,8 +474,8 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Features (optional)</label>
                 <textarea
-                  className={`${darkTextareaClass} min-h-[44px]`}
-                  placeholder="One per line or comma-separated"
+                  className="inputDark min-h-[44px]"
+                  placeholder={"One per line or comma-separated"}
                   value={form.featuresText}
                   onChange={(e) => setForm((p) => ({ ...p, featuresText: e.target.value }))}
                 />
@@ -361,7 +484,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Status</label>
                 <select
-                  className={darkSelectClass}
+                  className="selectDark"
                   value={form.status}
                   onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
                 >
@@ -373,7 +496,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-xs text-white/60 mb-1">Property Type</label>
                 <select
-                  className={darkSelectClass}
+                  className="selectDark"
                   value={form.type}
                   onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
                 >
@@ -384,20 +507,22 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Media */}
             <div>
               <label className="block text-xs text-white/60 mb-1">Image URLs</label>
               <textarea
-                className={`${darkTextareaClass} min-h-[90px]`}
+                className="inputDark min-h-[90px]"
                 placeholder={"One per line\nhttps://...\nhttps://..."}
                 value={form.imagesText}
                 onChange={(e) => setForm((p) => ({ ...p, imagesText: e.target.value }))}
               />
             </div>
 
+            {/* Description */}
             <div>
               <label className="block text-xs text-white/60 mb-1">Description</label>
               <textarea
-                className={`${darkTextareaClass} min-h-[90px]`}
+                className="inputDark min-h-[90px]"
                 placeholder="Short description"
                 value={form.description}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
@@ -465,6 +590,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* MESSAGES */}
       <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -514,6 +640,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* METRICS */}
       <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
