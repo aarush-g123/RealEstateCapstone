@@ -1,0 +1,730 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { addProperty, removeProperty, useProperties } from "../utils/propertiesStore.js";
+import { clearPropertyMetrics, resetMetrics, useMetrics } from "../utils/metricsStore.js";
+import axios from "axios";
+
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || "/api";
+axios.defaults.withCredentials = true;
+
+export default function DashboardPage() {
+  const navigate = useNavigate();
+  const [authReady, setAuthReady] = useState(false);
+  const [properties, setProperties] = useProperties();
+  const [metrics, refreshMetrics] = useMetrics();
+
+  const [contacts, setContacts] = useState([]);
+  const [contactsLoading, setContactsLoading] = useState(true);
+
+  async function loadContacts() {
+    try {
+      setContactsLoading(true);
+      const res = await axios.get("/contacts");
+      setContacts(res.data.contacts || []);
+    } catch (err) {
+      console.error(err);
+      setContacts([]);
+    } finally {
+      setContactsLoading(false);
+    }
+  }
+
+  const [form, setForm] = useState({
+    title: "",
+    city: "",
+    price: "",
+    beds: "",
+    baths: "",
+    sqft: "",
+    type: "House",
+    status: "For Sale",
+    imagesText: "",
+    description: "",
+    featured: false,
+
+    // Optional extracted / extra fields
+    yearBuilt: "",
+    lotSizeSqft: "",
+    parking: "",
+    featuresText: "",
+
+    // Paste-to-parse
+    rawFacts: "",
+  });
+
+  const [autoFillStatus, setAutoFillStatus] = useState({ state: "idle", msg: "" }); // idle|ok|error
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvStatus, setCsvStatus] = useState({ state: "idle", msg: "" });
+
+  const canSubmit = useMemo(() => {
+    return (
+      form.title.trim() &&
+      form.city.trim() &&
+      String(form.price).trim() &&
+      String(form.beds).trim() &&
+      String(form.baths).trim() &&
+      String(form.sqft).trim()
+    );
+  }, [form]);
+
+  useEffect(() => {
+    const authed = localStorage.getItem("ownerAuthed") === "true";
+    if (!authed) {
+      navigate("/owner-login");
+      return;
+    }
+    setAuthReady(true);
+    loadContacts();
+  }, [navigate]);
+
+  const email = localStorage.getItem("ownerEmail");
+
+  const propertyViews = useMemo(() => {
+    const map = (metrics && metrics.properties) || {};
+    return properties
+      .map((p) => ({
+        id: p.id,
+        title: p.title,
+        city: p.city,
+        views: Number(map[p.id] || 0),
+      }))
+      .sort((a, b) => b.views - a.views);
+  }, [metrics, properties]);
+
+  const pageViews = useMemo(() => {
+    const pages = (metrics && metrics.pages) || {};
+    return Object.entries(pages)
+      .map(([path, views]) => ({ path, views: Number(views || 0) }))
+      .sort((a, b) => b.views - a.views);
+  }, [metrics]);
+
+  if (!authReady) return null;
+
+  return (
+    <div className="panel p-10">
+      <h1 className="text-4xl font-semibold tracking-wide text-white">Owner Dashboard</h1>
+
+      <p className="mt-3 text-white/70">
+        This page is restricted to the site owner.{" "}
+        {email ? (
+          <>
+            Signed in as <span className="font-semibold text-white">{email}</span>.
+          </>
+        ) : null}
+      </p>
+
+      <div className="mt-8 grid gap-6 sm:grid-cols-2">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
+          <div className="text-sm tracking-[0.35em] uppercase text-white/60">Listings</div>
+          <div className="mt-3 text-white/80 font-semibold">Manage property cards</div>
+          <div className="text-sm text-white/70 mt-2">Update active listings shown on the site.</div>
+
+          <Link
+            to="/properties"
+            className="mt-5 inline-block text-sm font-semibold text-white/80 hover:text-white hover:underline transition"
+          >
+            View properties →
+          </Link>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
+          <div className="text-sm tracking-[0.35em] uppercase text-white/60">Messages</div>
+          <div className="mt-3 text-white/80 font-semibold">Inquiries and tour requests</div>
+          <div className="text-sm text-white/70 mt-2">View contact submissions from visitors.</div>
+
+          <Link
+            to="/contact"
+            className="mt-5 inline-block text-sm font-semibold text-white/80 hover:text-white hover:underline transition"
+          >
+            Contact page →
+          </Link>
+        </div>
+      </div>
+
+      {/* PROPERTY MANAGER */}
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
+          <div className="text-sm tracking-[0.35em] uppercase text-white/60">Add listing</div>
+          <div className="mt-3 text-white/80 font-semibold">Create a new property</div>
+
+          <form
+            className="mt-5 grid gap-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!canSubmit) return;
+
+              const images = String(form.imagesText || "")
+                .split("\n")
+                .map((s) => s.trim())
+                .filter(Boolean);
+
+              const features = String(form.featuresText || "")
+                .split(/\n|,|;/)
+                .map((s) => s.trim())
+                .filter(Boolean);
+
+              const next = addProperty({
+                title: form.title.trim(),
+                city: form.city.trim(),
+                price: Number(form.price),
+                beds: Number(form.beds),
+                baths: Number(form.baths),
+                sqft: Number(form.sqft),
+                type: form.type,
+                status: form.status,
+                images: images.length
+                  ? images
+                  : [
+                      "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1400&q=80",
+                    ],
+                description: form.description.trim() || "New listing.",
+                agentId: "a-1",
+                featured: Boolean(form.featured),
+
+                // Optional fields (only include if provided)
+                yearBuilt: String(form.yearBuilt).trim() ? Number(form.yearBuilt) : undefined,
+                lotSizeSqft: String(form.lotSizeSqft).trim() ? Number(form.lotSizeSqft) : undefined,
+                parking: String(form.parking).trim() ? String(form.parking).trim() : undefined,
+                features: features.length ? features : undefined,
+              });
+
+              setProperties(next);
+
+              setForm({
+                title: "",
+                city: "",
+                price: "",
+                beds: "",
+                baths: "",
+                sqft: "",
+                type: "House",
+                status: "For Sale",
+                imagesText: "",
+                description: "",
+                featured: false,
+                yearBuilt: "",
+                lotSizeSqft: "",
+                parking: "",
+                featuresText: "",
+                rawFacts: "",
+              });
+
+              setAutoFillStatus({ state: "idle", msg: "" });
+              setCsvFile(null);
+              setCsvStatus({ state: "idle", msg: "" });
+            }}
+          >
+            {/* Paste-to-parse (optional) */}
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="text-xs tracking-[0.25em] uppercase text-white/50">Paste-to-parse (optional)</div>
+              <p className="mt-2 text-xs text-white/60">
+                Paste listing facts (MLS input, tax card, internal sheet, or agent-written notes). We’ll auto-fill what
+                we can.
+              </p>
+
+              <textarea
+                className="inputDark mt-3 min-h-[110px]"
+                placeholder={
+                  "Example: 4 bed 3 bath Colonial, 2,450 sqft, built in 1998, 0.18 acres, 2-car garage, hardwood floors..."
+                }
+                value={form.rawFacts}
+                onChange={(e) => setForm((p) => ({ ...p, rawFacts: e.target.value }))}
+              />
+
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  className="btnGhost"
+                  onClick={async () => {
+                    setAutoFillStatus({ state: "idle", msg: "" });
+                    const rawText = String(form.rawFacts || "").trim();
+                    if (!rawText) return;
+
+                    try {
+                      const res = await axios.post("/properties/extract-facts", { rawText });
+                      const d = res?.data?.data || {};
+
+                      setForm((p) => {
+                        const next = { ...p };
+
+                        if (d.beds != null) next.beds = String(d.beds);
+                        if (d.baths != null) next.baths = String(d.baths);
+                        if (d.squareFeet != null) next.sqft = String(d.squareFeet);
+                        if (d.yearBuilt != null) next.yearBuilt = String(d.yearBuilt);
+                        if (d.lotSizeSqft != null) next.lotSizeSqft = String(d.lotSizeSqft);
+                        if (d.parking) next.parking = String(d.parking);
+
+                        if (Array.isArray(d.features) && d.features.length) {
+                          next.featuresText = d.features.join("\n");
+                        }
+
+                        if (d.propertyType) {
+                          const t = String(d.propertyType).toLowerCase();
+                          if (t.includes("condo")) next.type = "Condo";
+                          else if (t.includes("cabin")) next.type = "Cabin";
+                          else next.type = "House";
+                        }
+
+                        return next;
+                      });
+
+                      setAutoFillStatus({
+                        state: "ok",
+                        msg: "Auto-fill applied. Review + adjust anything that looks off.",
+                      });
+                    } catch {
+                      setAutoFillStatus({
+                        state: "error",
+                        msg: "Auto-fill failed. Make sure you’re signed in and the server is running.",
+                      });
+                    }
+                  }}
+                >
+                  Auto-fill facts
+                </button>
+
+                {autoFillStatus.state !== "idle" && (
+                  <span className={`text-xs ${autoFillStatus.state === "ok" ? "text-emerald-300" : "text-rose-300"}`}>
+                    {autoFillStatus.msg}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* CSV upload (optional) */}
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="text-xs tracking-[0.25em] uppercase text-white/50">CSV upload (optional)</div>
+              <p className="mt-2 text-xs text-white/60">
+                Upload a CSV file and we’ll use the first row to auto-fill this form.
+              </p>
+
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                className="mt-3 block w-full text-sm text-white file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-sm file:text-white hover:file:bg-white/20"
+                onChange={(e) => {
+                  setCsvStatus({ state: "idle", msg: "" });
+                  setCsvFile(e.target.files?.[0] || null);
+                }}
+              />
+
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  className="btnGhost"
+                  onClick={async () => {
+                    setCsvStatus({ state: "idle", msg: "" });
+
+                    if (!csvFile) {
+                      setCsvStatus({ state: "error", msg: "Choose a CSV file first." });
+                      return;
+                    }
+
+                    try {
+                      const formData = new FormData();
+                      formData.append("file", csvFile);
+
+                      const res = await axios.post("/properties/import-csv-preview", formData, {
+                        headers: {
+                          "Content-Type": "multipart/form-data",
+                        },
+                      });
+
+                      const d = res?.data?.data || {};
+
+                      setForm((p) => ({
+                        ...p,
+                        title: d.title != null && d.title !== "" ? String(d.title) : p.title,
+                        city: d.city != null && d.city !== "" ? String(d.city) : p.city,
+                        price: d.price != null ? String(d.price) : p.price,
+                        beds: d.beds != null ? String(d.beds) : p.beds,
+                        baths: d.baths != null ? String(d.baths) : p.baths,
+                        sqft: d.sqft != null ? String(d.sqft) : p.sqft,
+                        type: d.type || p.type,
+                        status: d.status || p.status,
+                        description: d.description != null && d.description !== "" ? String(d.description) : p.description,
+                        yearBuilt: d.yearBuilt != null ? String(d.yearBuilt) : p.yearBuilt,
+                        lotSizeSqft: d.lotSizeSqft != null ? String(d.lotSizeSqft) : p.lotSizeSqft,
+                        parking: d.parking != null && d.parking !== "" ? String(d.parking) : p.parking,
+                        featuresText: d.featuresText != null && d.featuresText !== "" ? String(d.featuresText) : p.featuresText,
+                        imagesText: d.imagesText != null && d.imagesText !== "" ? String(d.imagesText) : p.imagesText,
+                      }));
+
+                      setCsvStatus({
+                        state: "ok",
+                        msg: `CSV imported. Using first row from ${res?.data?.rowCount || 1} row(s).`,
+                      });
+                    } catch (err) {
+                      console.error(err);
+                      setCsvStatus({
+                        state: "error",
+                        msg:
+                          err?.response?.data?.error ||
+                          "CSV import failed. Make sure the file has headers in the first row.",
+                      });
+                    }
+                  }}
+                >
+                  Import CSV
+                </button>
+
+                {csvStatus.state !== "idle" && (
+                  <span className={`text-xs ${csvStatus.state === "ok" ? "text-emerald-300" : "text-rose-300"}`}>
+                    {csvStatus.msg}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Basic info */}
+            <div>
+              <label className="block text-xs text-white/60 mb-1">Title</label>
+              <input
+                className="inputDark"
+                placeholder="e.g., 4BR Colonial in Ridgewood"
+                value={form.title}
+                onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-white/60 mb-1">City, State</label>
+              <input
+                className="inputDark"
+                placeholder="e.g., Ramsey, NJ"
+                value={form.city}
+                onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
+              />
+            </div>
+
+            {/* Price / Beds / Baths */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Price</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.price}
+                  onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Beds</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.beds}
+                  onChange={(e) => setForm((p) => ({ ...p, beds: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Baths</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.baths}
+                  onChange={(e) => setForm((p) => ({ ...p, baths: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {/* Sqft / Year Built / Lot Size */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Sqft</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.sqft}
+                  onChange={(e) => setForm((p) => ({ ...p, sqft: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Year Built (optional)</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.yearBuilt}
+                  onChange={(e) => setForm((p) => ({ ...p, yearBuilt: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Lot Size (sqft, optional)</label>
+                <input
+                  className="inputDark"
+                  inputMode="numeric"
+                  value={form.lotSizeSqft}
+                  onChange={(e) => setForm((p) => ({ ...p, lotSizeSqft: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {/* Parking / Features / Status / Type */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Parking (optional)</label>
+                <input
+                  className="inputDark"
+                  value={form.parking}
+                  onChange={(e) => setForm((p) => ({ ...p, parking: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Features (optional)</label>
+                <textarea
+                  className="inputDark min-h-[44px]"
+                  placeholder={"One per line or comma-separated"}
+                  value={form.featuresText}
+                  onChange={(e) => setForm((p) => ({ ...p, featuresText: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Status</label>
+                <select
+                  className="selectDark"
+                  value={form.status}
+                  onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
+                >
+                  <option className="text-slate-900">For Sale</option>
+                  <option className="text-slate-900">For Rent</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-white/60 mb-1">Property Type</label>
+                <select
+                  className="selectDark"
+                  value={form.type}
+                  onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
+                >
+                  <option className="text-slate-900">House</option>
+                  <option className="text-slate-900">Condo</option>
+                  <option className="text-slate-900">Cabin</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Media */}
+            <div>
+              <label className="block text-xs text-white/60 mb-1">Image URLs</label>
+              <textarea
+                className="inputDark min-h-[90px]"
+                placeholder={"One per line\nhttps://...\nhttps://..."}
+                value={form.imagesText}
+                onChange={(e) => setForm((p) => ({ ...p, imagesText: e.target.value }))}
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-xs text-white/60 mb-1">Description</label>
+              <textarea
+                className="inputDark min-h-[90px]"
+                placeholder="Short description"
+                value={form.description}
+                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+              />
+            </div>
+
+            <label className="flex items-center gap-2 text-sm text-white/70">
+              <input
+                type="checkbox"
+                checked={form.featured}
+                onChange={(e) => setForm((p) => ({ ...p, featured: e.target.checked }))}
+              />
+              Mark as featured
+            </label>
+
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className={`btnPrimary ${!canSubmit ? "opacity-60 cursor-not-allowed" : ""}`}
+            >
+              Add property
+            </button>
+          </form>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-7">
+          <div className="text-sm tracking-[0.35em] uppercase text-white/60">Your listings</div>
+          <div className="mt-3 text-white/80 font-semibold">Remove properties</div>
+          <p className="mt-2 text-sm text-white/70">These update immediately on the Properties page.</p>
+
+          <div className="mt-6 space-y-3 max-h-[520px] overflow-auto pr-1">
+            {properties.map((p) => (
+              <div
+                key={p.id}
+                className="rounded-2xl border border-white/10 bg-black/20 p-4 flex items-center justify-between gap-4"
+              >
+                <div className="min-w-0">
+                  <div className="text-white font-semibold truncate">{p.title}</div>
+                  <div className="text-xs text-white/60 mt-1 truncate">
+                    {p.city} • {p.status} • {p.type}
+                    {p.featured ? " • Featured" : ""}
+                  </div>
+                </div>
+
+                <button
+                  className="btnGhost whitespace-nowrap"
+                  onClick={async () => {
+                    const ok = window.confirm(`Remove “${p.title}”?`);
+                    if (!ok) return;
+                    const next = removeProperty(p.id);
+                    try {
+                      await clearPropertyMetrics(p.id);
+                    } catch {}
+                    await refreshMetrics();
+                    setProperties(next);
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+
+            {properties.length === 0 && <div className="text-sm text-white/70">No properties yet.</div>}
+          </div>
+        </div>
+      </div>
+
+      {/* MESSAGES */}
+      <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-7">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="text-sm tracking-[0.35em] uppercase text-white/60">Messages</div>
+            <div className="mt-3 text-white/80 font-semibold">Property inquiries</div>
+            <p className="mt-2 text-sm text-white/70">Messages sent from property pages and the contact form.</p>
+          </div>
+
+          <button className="btnGhost" onClick={loadContacts}>
+            Refresh
+          </button>
+        </div>
+
+        <div className="mt-6 space-y-4 max-h-[540px] overflow-auto pr-1">
+          {contactsLoading ? (
+            <div className="text-sm text-white/70">Loading messages...</div>
+          ) : contacts.length === 0 ? (
+            <div className="text-sm text-white/70">No messages yet.</div>
+          ) : (
+            contacts.map((c) => (
+              <div key={c.id} className="rounded-2xl border border-white/10 bg-black/20 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-white font-semibold">{c.name}</div>
+                    <div className="mt-1 text-sm text-white/60">
+                      {c.email}
+                      {c.phone ? ` • ${c.phone}` : ""}
+                    </div>
+                  </div>
+
+                  <div className="text-right text-xs text-white/50">
+                    <div>{c.source === "property-detail" ? "Property inquiry" : "General contact"}</div>
+                    <div className="mt-1">{new Date(c.createdAt).toLocaleString()}</div>
+                  </div>
+                </div>
+
+                {c.propertyTitle ? (
+                  <div className="mt-4 inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+                    {c.propertyTitle}
+                  </div>
+                ) : null}
+
+                <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-white/80">{c.message}</p>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* METRICS */}
+      <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-7">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="text-sm tracking-[0.35em] uppercase text-white/60">Metrics</div>
+            <div className="mt-3 text-white/80 font-semibold">Views</div>
+            <p className="mt-2 text-sm text-white/70">
+              Server-backed analytics (last {metrics?.days || 30} days).
+            </p>
+          </div>
+
+          <button
+            className="btnGhost"
+            onClick={async () => {
+              const ok = window.confirm("Reset all metrics? This can’t be undone.");
+              if (!ok) return;
+              try {
+                await resetMetrics();
+              } catch {}
+              await refreshMetrics();
+            }}
+          >
+            Reset metrics
+          </button>
+        </div>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
+            <div className="text-xs tracking-[0.25em] uppercase text-white/50">Total site views</div>
+            <div className="mt-2 text-3xl font-semibold text-white">
+              {Number(metrics?.totalSiteViews || 0).toLocaleString()}
+            </div>
+            <div className="mt-2 text-xs text-white/50">Last updated: {metrics?.updatedAt || ""}</div>
+          </div>
+
+          <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-black/20 p-5">
+            <div className="text-xs tracking-[0.25em] uppercase text-white/50">Views by page</div>
+            <div className="mt-4 space-y-2 max-h-[220px] overflow-auto pr-1">
+              {pageViews.map((r) => (
+                <div key={r.path} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-white/80 truncate">{r.path}</span>
+                  <span className="font-semibold text-white">{r.views.toLocaleString()}</span>
+                </div>
+              ))}
+              {pageViews.length === 0 && <div className="text-sm text-white/70">No views yet.</div>}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-5">
+          <div className="text-xs tracking-[0.25em] uppercase text-white/50">Views by property</div>
+          <div className="mt-4 space-y-2 max-h-[300px] overflow-auto pr-1">
+            {propertyViews.map((r) => (
+              <div key={r.id} className="flex items-center justify-between gap-3 text-sm">
+                <div className="min-w-0">
+                  <div className="text-white/80 truncate">{r.title}</div>
+                  <div className="text-xs text-white/50 truncate">{r.city}</div>
+                </div>
+                <span className="font-semibold text-white">{r.views.toLocaleString()}</span>
+              </div>
+            ))}
+            {propertyViews.length === 0 && <div className="text-sm text-white/70">No properties yet.</div>}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 flex flex-wrap gap-3">
+        <button
+          onClick={() => {
+            localStorage.removeItem("ownerAuthed");
+            localStorage.removeItem("ownerEmail");
+            navigate("/");
+          }}
+          className="btnGhost"
+        >
+          Sign out
+        </button>
+
+        <Link to="/" className="btnPrimary">
+          Back to home
+        </Link>
+      </div>
+    </div>
+  );
+}
