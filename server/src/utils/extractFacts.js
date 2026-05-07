@@ -98,6 +98,8 @@ function extractFeatures(textLower) {
 }
 
 function extractParking(textLower) {
+  // Best-effort: return a short human string or null.
+  // Examples: "2-car garage", "1-car garage", "driveway", "street parking".
   const mGarage = /\b(\d+)\s*[- ]?car\s+garage\b/.exec(textLower);
   if (mGarage) {
     const n = clampInt(Number(mGarage[1]), 1, 10);
@@ -121,12 +123,14 @@ function extractLotSizeSqft(textLower) {
     }
   }
 
+  // Then "sq ft lot" patterns
   const mSqftLot = /\b([\d,]{3,})\s*(sq\s?ft|sqft|square\s?feet)\s*(lot|lot\s*size)?\b/.exec(textLower);
   if (mSqftLot) {
     const sqft = toNumberLoose(mSqftLot[1]);
     if (sqft && sqft > 0) return Math.round(sqft);
   }
 
+  // "lot: 50x100"
   const mDims = /\blot\s*[:\-]?\s*(\d{1,4})\s*[x×]\s*(\d{1,4})\b/.exec(textLower);
   if (mDims) {
     const a = clampInt(Number(mDims[1]), 1, 20000);
