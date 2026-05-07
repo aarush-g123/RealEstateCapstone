@@ -150,7 +150,7 @@ export default function HomePage() {
           loop
           playsInline
         >
-          <source src="/hero-video.mp4" type="video/mp4" />
+          <source src="/15887128-uhd_3840_2160_30fps.mp4" type="video/mp4" />
         </video>
 
         <div className="absolute inset-0 bg-black/45" />
