@@ -7,10 +7,10 @@ export default function PropertyCard({ property }) {
     <div className="group overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur shadow-sm hover:border-white/20 transition">
       <div className="relative">
         <img
-          src={property.images?.[0]}
-          alt={property.title}
-          className="h-52 w-full object-cover group-hover:scale-[1.02] transition"
-          loading="lazy"
+            src={property.images?.[0] || "/house-placeholder.jpg"}
+            alt={property.title}
+            className="h-52 w-full object-cover group-hover:scale-[1.02] transition"
+            loading="lazy"
         />
         {/* subtle dark overlay on hover for a more premium feel */}
         <div className="pointer-events-none absolute inset-0 bg-black/0 group-hover:bg-black/10 transition" />
