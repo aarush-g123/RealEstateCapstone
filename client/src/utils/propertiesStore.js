@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { properties as seedProperties } from "../data/properties.js";
 
-const STORAGE_KEY = "properties_v2";
+const STORAGE_KEY = "properties_v3";
 function safeParse(json) {
   try {
     return JSON.parse(json);
