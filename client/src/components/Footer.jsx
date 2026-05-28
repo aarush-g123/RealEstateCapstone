@@ -7,7 +7,9 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-6 py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <div className="font-semibold text-white">Sweta Patel Realtor</div>
-          <p className="text-sm text-white/70 mt-2">Example</p>
+          <p className="mt-4 text-sm text-white/70">
+            Helping you find your dream home with personalized service and expert guidance
+          </p>
         </div>
 
         <div className="text-sm">
@@ -17,9 +19,6 @@ export default function Footer() {
           <div className="mt-4 grid gap-2 text-white/60">
             <Link className="hover:text-white transition" to="/properties">
               Browse properties
-            </Link>
-            <Link className="hover:text-white transition" to="/about">
-              About
             </Link>
             <Link className="hover:text-white transition" to="/contact">
               Contact

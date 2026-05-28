@@ -137,14 +137,6 @@ export default function PropertyDetailPage() {
               </div>
             ) : null}
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              <button onClick={() => alert("Tour requested (prototype)")} className="btnPrimary">
-                Request a tour
-              </button>
-              <button onClick={() => alert("Application started (prototype)")} className="btnGhost">
-                Start application
-              </button>
-            </div>
           </div>
         </div>
 
@@ -152,9 +144,6 @@ export default function PropertyDetailPage() {
           <div className="panel p-7">
             <div className="panelTitle">Quick actions</div>
             <div className="mt-5 grid gap-3">
-              <button onClick={() => alert("Saved (prototype)")} className="btnGhost">
-                Save to favorites
-              </button>
               <button
                 onClick={() =>
                   navigate("/contact", {
@@ -164,9 +153,6 @@ export default function PropertyDetailPage() {
                 className="btnPrimary"
               >
                 Contact
-              </button>
-              <button onClick={() => navigate("/login")} className="btnGhost">
-                Sign in for alerts
               </button>
             </div>
           </div>
@@ -207,9 +193,6 @@ export default function PropertyDetailPage() {
                 >
                   Message
                 </button>
-                <Link to="/agents" className="btnGhost">
-                  View agents
-                </Link>
               </div>
             </div>
           )}

@@ -50,14 +50,6 @@ export default function PropertyCard({ property }) {
           >
             View details
           </Link>
-          <button
-            onClick={() => alert("Saved to favorites (prototype)")}
-            className="px-4 py-3 rounded-xl text-sm font-semibold border border-white/15 text-white hover:border-white/40 hover:bg-white/5 transition"
-            aria-label="Save to favorites"
-            title="Save"
-          >
-            ☆
-          </button>
         </div>
       </div>
     </div>
