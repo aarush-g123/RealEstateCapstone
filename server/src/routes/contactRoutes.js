@@ -16,7 +16,7 @@ const contactSchema = z.object({
 });
 
 // GET /api/contacts (admin only)
-router.get('/', async (_req, res) => {
+router.get('/', requireRole('admin'), async (_req, res) => {
   try {
     const contacts = await Contact.findAll({
       order: [['createdAt', 'DESC']],
